@@ -3,7 +3,9 @@ config = {}
 enet = require "enet"
 
 local load = function(args)
-  table.remove(arg, 1)
+  if love then
+    table.remove(arg, 1)
+  end
   for i, v in ipairs(arg) do
     if v:match("^%-%-") then --option
       config[v:match("^%-%-(.-)$")] = true
@@ -16,9 +18,9 @@ local load = function(args)
   end
 
   if config.server then
-    require "server"
+    require "server.init"
   else
-    require "client"
+    require "client.init"
   end
 end
 
