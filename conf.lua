@@ -27,7 +27,7 @@ function love.conf(t)
     --]]
  
     t.modules.audio = false             -- Enable the audio module (boolean)
-    t.modules.event = false             -- Enable the event module (boolean)
+    t.modules.event = true              -- Enable the event module (boolean)
     t.modules.graphics = false          -- Enable the graphics module (boolean)
     t.modules.image = false             -- Enable the image module (boolean)
     t.modules.joystick = false          -- Enable the joystick module (boolean)
