@@ -77,21 +77,26 @@ love.update = function(dt)
         peer_lines[line.id] = nil
 
       elseif t[1] == "S" then -- squashing a line!
+        local line = peer_lines[line_id]
 
-        local c = line.color
-        love.graphics.setColor(c[1] * 255, c[2] * 255, c[3] * 255, c[4] or 255)
-        love.graphics.setLineWidth(line.width)
-        love.graphics.setCanvas(canvas)
-          love.graphics.line(line)
-        love.graphics.setCanvas()
+        if #line >= 4 then
 
-        peer_lines[line.id] = nil
+          local c = line.color
+          love.graphics.setColor(c[1] * 255, c[2] * 255, c[3] * 255, c[4] or 255)
+          love.graphics.setLineWidth(line.width)
+          love.graphics.setCanvas(canvas)
+            love.graphics.line(line)
+          love.graphics.setCanvas()
 
-        for i, v in ipairs(buffer) do
-          if v == line then
-            table.remove(buffer, i)
-            break
+          peer_lines[line.id] = nil
+
+          for i, v in ipairs(buffer) do
+            if v == line then
+              table.remove(buffer, i)
+              break
+            end
           end
+
         end
 
       elseif t[1] == "ID" then
