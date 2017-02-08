@@ -2,7 +2,7 @@ config = {}
 
 enet = require "enet"
 
-love.load = function(args)
+local load = function(args)
   table.remove(arg, 1)
   for i, v in ipairs(arg) do
     if v:match("^%-%-") then --option
@@ -20,4 +20,10 @@ love.load = function(args)
   else
     require "client"
   end
+end
+
+if love then
+  love.load = load
+else
+  load({...})
 end
