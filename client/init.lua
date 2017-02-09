@@ -203,6 +203,7 @@ love.mousepressed = function(x, y, butt)
     temp_line = {size = size, color = {r, g, b, a}, x, y}
     --server:send("C:" .. line_id .. ":" .. x .. ":" .. y .. ":3:1:1:1:1")
     server:send(binser.s("C", line_id, x, y, size, r, g, b, a))
+    server:send(binser.s("d", line_id, x, y))
     temp_lines[line_id] = temp_line
   elseif butt == 2 then
     CP:create(x - 192, y - 192, 192)
@@ -220,6 +221,10 @@ love.mousemoved = function(x, y, dx, dy)
   end
 end
 
+
+love.wheelmoved = function(dx, dy)
+  size = math.max(1, size + dy)
+end
 
 love.mousereleased = function(x, y, butt)
   if butt == 1 and temp_line then
