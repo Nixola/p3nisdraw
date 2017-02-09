@@ -1,0 +1,3 @@
+[submodule "binser"]
+	path = binser
+	url = https://github.com/bakpakin/binser
