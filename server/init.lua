@@ -25,6 +25,7 @@ local relay = function(host, data, peer_id)
   --return host:broadcast(data:gsub("^([^:]+:)", "%1" .. peer_id .. ":"), 0)
 end
 
+
 while true do
   local event = host:service(100)
   if event and event.type == "connect" then
@@ -63,7 +64,6 @@ while true do
       local line = {id = line_id, peer = peer_id, width = width, time = time, x, y}
       line.color = {r, g, b, a}
       peer_lines[line_id] = line
-      for i, v in pairs(peer_lines) do print(i, v) end
       buffer[#buffer + 1] = line
 
       --relay(host, event.data .. ":" .. time, peer_id)
@@ -112,6 +112,7 @@ while true do
       relay(host, t, peer_id)
 
     elseif t[1] == "D" then -- deleting a line!
+      print("Deleting", line_id)
       local line = peer_lines[line_id]
       for i, v in pairs(buffer) do
         if line == v then
@@ -120,7 +121,7 @@ while true do
         end
       end
 
-      peer_lines[line.id] = nil
+      peer_lines[line_id] = nil
 
       relay(host, t, peer_id)
     end

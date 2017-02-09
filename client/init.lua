@@ -36,6 +36,8 @@ love.window.setMode(1280, 720)
 
 local canvas = love.graphics.newCanvas(1280, 720)
 
+love.graphics.setLineJoin("bevel")
+
 local size, r, g, b, a = 3, 1, 1, 1, 1
 
 love.update = function(dt)
@@ -99,7 +101,18 @@ love.update = function(dt)
 
       elseif t[1] == "D" then -- deleting a line!
 
-        peer_lines[line.id] = nil
+        print "DEL"
+
+        local line = peer_lines[line_id]
+        print(line)
+        peer_lines[line_id] = nil
+        for i, v in pairs(buffer) do
+          print(v)
+          if line == v then
+            table.remove(buffer, i)
+            break
+          end
+        end
 
       elseif t[1] == "S" then -- squashing a line!
         local line = peer_lines[line_id]
@@ -193,6 +206,14 @@ love.draw = function()
     love.graphics.setColor(r * 255, g * 255, b * 255, a * 192)
     love.graphics.setLineWidth(1)
     love.graphics.circle("line", mx, my, size + 1, size * 2)
+  end
+end
+
+
+love.keypressed = function(key, scan)
+  if scan == "z" and love.keyboard.isDown("ctrl", "lctrl", "rctrl") then
+    server:send(binser.s("D", line_id))
+    line_id = line_id - 1
   end
 end
 
