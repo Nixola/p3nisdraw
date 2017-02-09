@@ -13,23 +13,39 @@ local buffer = {}
 local lines = {}
 local linesList = {}
 
+table.clone = function(t) --shallow clone!
+  local t2 = {}
+  for i, v in pairs(t) do t2[i] = v end
+  return t2
+end
+
 local relay = function(host, data, peer_id)
-  return host:broadcast(data:gsub("^([^:]+:)", "%1" .. peer_id .. ":"), 0)
+  table.insert(data, 2, peer_id)
+  return host:broadcast(binser.s(unpack(data)))
+  --return host:broadcast(data:gsub("^([^:]+:)", "%1" .. peer_id .. ":"), 0)
 end
 
 while true do
   local event = host:service(100)
   if event and event.type == "connect" then
-    event.peer:send("ID:" .. event.peer:connect_id())
+    event.peer:send(binser.s("ID", event.peer:connect_id()))
+    local time = math.floor(os.time() / 60)
+    surface:write_to_png("snapshot-" .. time .. ".png")
+    local pngFile = assert(io.open("snapshot-" .. time .. ".png"))
+    local png = pngFile:read "*a"
+    pngFile:close()
+    event.peer:send(binser.s("PNG", png))
+    event.peer:send(binser.s("STATUS", lines))
   end
   if event and event.type == "receive" then
-    local t = {}
-    local peer_id = event.peer:connect_id()
-    for part in event.data:gmatch("([^:]+)") do
-      t[#t+1] = part
-    end
+    --local t = {}
+    --for part in event.data:gmatch("([^:]+)") do
+    --  t[#t+1] = part
+    --end
+    local t = binser.d(event.data)
 
     local line_id = t[2] -- clients can choose their own line IDs, as every client has its own table
+    local peer_id = event.peer:connect_id()
 
 
     local peer_lines = lines[peer_id]
@@ -39,26 +55,28 @@ while true do
     end
 
     if t[1] == "C" then -- creating a new line!
+      print("Create", line_id, type(line_id), "by", peer_id)
 
-      print("Creating line", line_id, "by", peer_id)
-
-      local x, y, width, r, g, b, a = tonumber(t[3]), tonumber(t[4]), tonumber(t[5]), tonumber(t[6]), tonumber(t[7]), tonumber(t[8]), tonumber(t[9])
+      local x, y, width, r, g, b, a = t[3], t[4], t[5], t[6], t[7], t[8], t[9]
       local time = os.time()
 
-      local line = {id = line_id, width = width, time = time, x, y}
+      local line = {id = line_id, peer = peer_id, width = width, time = time, x, y}
       line.color = {r, g, b, a}
       peer_lines[line_id] = line
+      for i, v in pairs(peer_lines) do print(i, v) end
       buffer[#buffer + 1] = line
 
-      --host:broadcast(event.data:gsub("C:", "C:" .. peer_id .. ":")) -- broadcast the exact same event, but add the peer id as second field first
-      relay(host, event.data .. ":" .. time, peer_id)
-      --event.peer:send(event.data:gsub("^([^:]+:)", "%1" .. peer_id .. ":") .. ":" .. time)
+      --relay(host, event.data .. ":" .. time, peer_id)
+      table.insert(t, time)
+      relay(host, t, peer_id)
 
       table.sort(buffer, function(a, b) return a.time < b.time end)
-      for i = #buffer, 1, -1 do
+      local i = 1
+      while true do
         local line = buffer[i]
-        if time - line.time > 120 then -- if the line is too old
-          host:broadcast("S:" .. peer_id .. ":" .. line.id)
+        if not line then break end
+        if time - line.time > 120 then -- if the line is too old; squash
+          host:broadcast(binser.s("S", peer_id, line_id))
           cr:move_to(line[1], line[2])
           for i = 2, #line/2 do
             local x, y = line[i * 2 - 1], line[i * 2]
@@ -71,22 +89,27 @@ while true do
           cr:stroke()
 
           table.remove(buffer, i)
-          peer_lines[line.id] = nil
+          lines[line.peer][line.id] = nil
+          i = i - 1
         end
+        i = i + 1
       end
     
     elseif t[1] == "d" then -- adding a new point to a line!
       local line = peer_lines[line_id]
-      print("Adding point to", line_id)
+      if not line then
+        print("Error! Missing line", line_id, "by", peer_id)
+        return
+      end
       line[#line+1] = tonumber(t[3])
       line[#line+1] = tonumber(t[4])
 
-      relay(host, event.data, peer_id)
+      relay(host, t, peer_id)
 
     elseif t[1] == "f" then -- finishing a line! ...not sure this needs to be explicit.
-      --In fact, it's empty for now.
+      --In fact, it's almost empty for now.
 
-      relay(host, event.data, peer_id)
+      relay(host, t, peer_id)
 
     elseif t[1] == "D" then -- deleting a line!
       local line = peer_lines[line_id]
@@ -99,7 +122,7 @@ while true do
 
       peer_lines[line.id] = nil
 
-      relay(host, event.data, peer_id)
+      relay(host, t, peer_id)
     end
 
   end

@@ -1,6 +1,7 @@
 config = {}
 
 enet = require "enet"
+binser = require "binser.binser"
 
 local load = function(args)
   if love then
