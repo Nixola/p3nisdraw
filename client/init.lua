@@ -117,24 +117,24 @@ love.update = function(dt)
       elseif t[1] == "S" then -- squashing a line!
         local line = peer_lines[line_id]
 
-        if #line >= 4 then
-
-          local c = line.color
-          love.graphics.setColor(c[1] * 255, c[2] * 255, c[3] * 255, c[4] or 255)
-          love.graphics.setLineWidth(line.width)
-          love.graphics.setCanvas(canvas)
+        local c = line.color
+        love.graphics.setColor(c[1] * 255, c[2] * 255, c[3] * 255, c[4] or 255)
+        love.graphics.setLineWidth(line.width)
+        love.graphics.setCanvas(canvas)
+          love.graphics.circle("fill", line[1], line[2], line.width / 2, line.width)
+          if #line >= 4 then
+            love.graphics.circle("fill", line[#line-1], line[#line], line.width / 2, line.width)
             love.graphics.line(line)
-          love.graphics.setCanvas()
-
-          peer_lines[line.id] = nil
-
-          for i, v in ipairs(buffer) do
-            if v == line then
-              table.remove(buffer, i)
-              break
-            end
           end
+        love.graphics.setCanvas()
 
+        peer_lines[line.id] = nil
+
+        for i, v in ipairs(buffer) do
+          if v == line then
+            table.remove(buffer, i)
+            break
+          end
         end
 
       elseif t[1] == "ID" then
@@ -172,15 +172,17 @@ love.draw = function()
   table.sort(buffer, function(a, b) return a.time < b.time end)
 
   for i, line in ipairs(buffer) do
+    local c = line.color
+    local r, g, b, a = unpack(c)
+    r = r * 255
+    g = g * 255
+    b = b * 255
+    a = (a or 1) * 255
+    love.graphics.setColor(r,g,b,a)
+    love.graphics.setLineWidth(line.width)
+    love.graphics.circle("fill", line[1], line[2], line.width / 2, line.width)
     if #line >= 4 then
-      local c = line.color
-      local r, g, b, a = unpack(c)
-      r = r * 255
-      g = g * 255
-      b = b * 255
-      a = (a or 1) * 255
-      love.graphics.setColor(r,g,b,a)
-      love.graphics.setLineWidth(line.width)
+      love.graphics.circle("fill", line[#line-1], line[#line], line.width / 2, line.width)
       love.graphics.line(line)
     end
   end
@@ -201,11 +203,11 @@ love.draw = function()
     love.graphics.setColor(255, 255, 255)
     colorPicker:draw()
     love.graphics.setColor(colorPicker.sc[1] * 255, colorPicker.sc[2] * 255, colorPicker.sc[3] * 255, a * 192)
-    love.graphics.circle("fill", mx, my, size + 1, size * 2)
+    love.graphics.circle("fill", mx, my, size / 2 + 1, size)
   else
     love.graphics.setColor(r * 255, g * 255, b * 255, a * 192)
     love.graphics.setLineWidth(1)
-    love.graphics.circle("line", mx, my, size + 1, size * 2)
+    love.graphics.circle("line", mx, my, size / 2 + 1, size)
   end
 end
 
@@ -224,7 +226,6 @@ love.mousepressed = function(x, y, butt)
     temp_line = {size = size, color = {r, g, b, a}, x, y}
     --server:send("C:" .. line_id .. ":" .. x .. ":" .. y .. ":3:1:1:1:1")
     server:send(binser.s("C", line_id, x, y, size, r, g, b, a))
-    server:send(binser.s("d", line_id, x, y))
     temp_lines[line_id] = temp_line
   elseif butt == 2 then
     CP:create(x - 192, y - 192, 192)
@@ -251,7 +252,7 @@ love.mousereleased = function(x, y, butt)
   if butt == 1 and temp_line then
     temp_line = nil
     --server:send("f:" .. line_id)
-    server:send(binser.s("f", line_id))
+    server:send(binser.s("f", line_id, x, y))
   elseif butt == 2 then
     r, g, b = unpack(colorPicker.nc or colorPicker.sc)
     r = r / 255
