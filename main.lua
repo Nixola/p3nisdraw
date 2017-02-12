@@ -19,8 +19,14 @@ local load = function(args)
   end
 
   if config.server then
+    if love then
+      love.filesystem.setRequirePath(love.filesystem.getRequirePath() .. ";./server/?.lua")
+    else
+      package.path = package.path .. ";./server/?.lua"
+    end
     require "server.init"
   else
+    love.filesystem.setRequirePath(love.filesystem.getRequirePath() .. ";./client/?.lua")
     require "client.init"
   end
 end
