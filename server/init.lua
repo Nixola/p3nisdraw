@@ -44,6 +44,7 @@ while true do
     --  t[#t+1] = part
     --end
     local t = binser.d(event.data)
+    t.peer_id = event.peer:connect_id()
 
     local line_id = t[2] -- clients can choose their own line IDs, as every client has its own table
     local peer_id = event.peer:connect_id()
