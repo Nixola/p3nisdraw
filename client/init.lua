@@ -2,13 +2,15 @@ require "love.event"
 require "love.graphics"
 require "love.image"
 require "love.keyboard"
-
+require "love.math"
 require "love.mouse"
 
 require "love.timer"
 require "love.touch"
 require "love.window"
 --require "love.thread"
+
+local smoothing = 0 --DEBUG
 
 local CP = require "colorPicker"
 
@@ -56,13 +58,21 @@ love.update = function(dt)
       local peer_id = t[2] 
       local line_id = t[3] -- clients can choose their own line IDs, as every client has its own table
 
-      local peer_lines = lines[peer_id]
-      if not peer_lines then
+      local peer_lines, line
+
+      peer_lines = lines[peer_id]
+      if not peer_lines and t[1] ~= "PNG" then
+        print("No lines by", peer_id)
         peer_lines = {}
         lines[peer_id] = peer_lines
       end
 
-      local line = peer_lines[line_id]
+      local line = peer_lines and peer_lines[line_id]
+      if not line and t[1] ~= "C" and t[1] ~= "PNG" then
+        print("Missing line", line_id, "by", peer_id)
+        return
+      end
+
 
       if t[1] == "PNG" then
         local png = t[2]
@@ -81,6 +91,7 @@ love.update = function(dt)
         for i, peer_lines in pairs(lines) do
           for ii, line in pairs(peer_lines) do
             buffer[#buffer + 1] = line
+            print("Added previous line", line.id, "by", line.peer)
           end
         end
 
@@ -101,13 +112,9 @@ love.update = function(dt)
 
       elseif t[1] == "D" then -- deleting a line!
 
-        print "DEL"
-
         local line = peer_lines[line_id]
-        print(line)
         peer_lines[line_id] = nil
         for i, v in pairs(buffer) do
-          print(v)
           if line == v then
             table.remove(buffer, i)
             break
@@ -182,13 +189,32 @@ love.draw = function()
     love.graphics.setLineWidth(line.width)
     love.graphics.circle("fill", line[1], line[2], line.width / 2, line.width)
     if #line >= 4 then
+      local t = {}
+      for ii = 1, (#line/2) do
+        local x, y = line[ii*2-1], line[ii*2]
+        local n = 1
+        for iii = 1, smoothing do
+          local x1, y1 = line[ii*2-iii*2-1], line[ii*2-iii*2]
+          local x2, y2 = line[ii*2+iii*2-1], line[ii*2+iii*2]
+          if x1 and y1 and x2 and y2 then
+            n = n + 2
+            x = x + x1
+            y = y + y1
+            x = x + x2
+            y = y + y2
+          end
+        end
+        t[#t+1] = x/n
+        t[#t+1] = y/n
+      end
       love.graphics.circle("fill", line[#line-1], line[#line], line.width / 2, line.width)
-      love.graphics.line(line)
+      love.graphics.line(smoothing and t or line)
     end
   end
 
   for i, v in pairs(temp_lines) do
-    if #v >= 4 then
+    local len = #v / 2
+    if len >= 3 then
       local c = v.color
       local r, g, b, a = unpack(c)
       love.graphics.setColor(r * 255, g * 255, b * 255, a * 64)
@@ -216,6 +242,13 @@ love.keypressed = function(key, scan)
   if scan == "z" and love.keyboard.isDown("ctrl", "lctrl", "rctrl") then
     server:send(binser.s("D", line_id))
     line_id = line_id - 1
+  elseif scan == "up" then
+    smoothing = smoothing + 1
+    print("Smoothing:", smoothing)
+  elseif scan == "down" then
+    smoothing = smoothing - 1
+    smoothing = smoothing > 0 and smoothing or 0
+    print("Smoothing:", smoothing)
   end
 end
 
@@ -258,9 +291,7 @@ love.mousereleased = function(x, y, butt)
     r = r / 255
     g = g / 255
     b = b / 255
-    print(r, g, b)
     colorPicker = nil
   end
-  print(b)
 
 end
