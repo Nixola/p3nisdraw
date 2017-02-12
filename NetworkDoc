@@ -1,0 +1,35 @@
+This document lists all the different network events, what variables they contain and what to do with them.
+Ideally this would be markdown, or some actual documentation language, but I don't know any of those.
+
+In the client/server system used by this program the server is authoritative; this means the clients should not operate on the lines directly on input, but instead send the information to the server and only operate on its responses.
+Any event sent by a client will lack the peer ID; the server will add the peer ID to the events before broadcasting them. That's needed in order to prevent clients from messing with other client's lines.
+Server may also add two values to some events: time and order.
+time is os.time(), called as soon as the server receives it; it may not be of use to clients, but it marks the time when the event was sent.
+order is os.clock(), called as soon as the server receives it. It's needed to correctly sort lines through time, preventing any two lines from having the same order and thus creating undefined behaviour.
+
+Create {lineID, x, y, size, colour}:
+	this event declares the creation of a line. The ID is chosen by the client, and it's up to it not to create conflicts; a conflict would pretty much just delete a previous line with the same ID before creating a new one. Size and colour will not change throughout the whole line; this will be subject to change when/if graphics tablet support comes.
+	lineID is the ID of the line.
+	x and y are the coordinates of the starting point.
+	size is the width in pixels of the line.
+	colour is the colour of the lines - this includes alpha, which is not accessible via the UI.
+
+Draw {lineID, x, y}:
+	this event appends a point to an existing line.
+	x and y are the coordinates of the new point.
+	It may include a size value, once graphics tablet support comes.
+
+Finish {lineID}: 
+	this event marks the end of a line. The time at which this event is received marks the start of the two-minutes countdown until a line is drawn to the canvas.
+
+Delete {lineID}:
+	this event requests or orders the deletion of a line. Lines which have been squashed can't be deleted. This event is used to undo lines, in case something is drawn by mistake.
+
+Start {PNG, status, peerID}:
+	this event is sent from the server to single clients, as soon as they connect. 
+	PNG is the content of the canvas, encoded in PNG format (obviously)
+	status is a table, containing every line which hasn't been squashed yet.
+	peerID is the id the server assigns to the client; the client needs to know this, so it can know when the server has finalized its lines and so can stop drawing them.
+
+Squash {lineID}:
+	The server will broadcast this event when a line is older than two minutes, after drawing it to its internal canvas. The clients will draw the line to their internal canvas, then remove it from any buffer.
