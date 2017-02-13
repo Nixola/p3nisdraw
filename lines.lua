@@ -1,8 +1,12 @@
 local lines = {}
 local mt = {}
 
-mt.__index = function(self, peer_id)
-  self[peer_id] = {}
-  return self[peer_id]
+local buffer = {}
+
+mt.__index = function(self, peerID)
+  self[peerID] = {}
+  print("First line of", peerID)
+  return self[peerID]
 end
 
+return lines, buffer
