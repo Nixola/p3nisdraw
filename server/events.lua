@@ -4,8 +4,6 @@ local cairo = require "lgi".cairo
 local surface = cairo.ImageSurface.create("ARGB32", 1280, 720)
 local cr = cairo.Context.create(surface)
 
-local lines, buffer = require "lines"
-
 -- event handlers return a table of events. Every event in the table contains a boolean, "broadcast",
 -- which specifies whether the returned event should be broadcast to everyone or not. If not, it's just
 -- sent to the sender. The table is to be iterated in order, as the order of events (obviously) matters.
@@ -105,7 +103,7 @@ end
 
 
 events.connect = function(peerID) -- this is different
-  local event = {}
+  local event = {type = "start"}
   event.lines = lines
   event.id = peerID
 
@@ -119,5 +117,5 @@ events.connect = function(peerID) -- this is different
 
   event.png = png
 
-  return event
+  return {event}
 end
