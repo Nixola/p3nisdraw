@@ -33,3 +33,9 @@ Start {PNG, status, peerID}:
 
 Squash {lineID}:
 	The server will broadcast this event when a line is older than two minutes, after drawing it to its internal canvas. The clients will draw the line to their internal canvas, then remove it from any buffer.
+
+Connect {nick}:
+	This event signals the connection of another player. The client will create a table to hold this peer's lines, and will know their nickname.
+
+Disconnect {}:
+	This event signals the disconnection of another player. The client will only have to remove the player from any player list.
