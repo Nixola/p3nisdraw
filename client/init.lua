@@ -26,17 +26,17 @@ local self_id
 local line_id = 0
 local temp_line
 
-local temp_lines = {}
+temp_lines = {}
+lines = {}
+buffer = {}
 
-local lines = {}
-
-local buffer = {}
+local events = require "events"
 
 local colorPicker
 
 love.window.setMode(1280, 720)
 
-local canvas = love.graphics.newCanvas(1280, 720)
+canvas = love.graphics.newCanvas(1280, 720)
 
 love.graphics.setLineJoin("bevel")
 
@@ -71,91 +71,6 @@ love.update = function(dt)
       if not line and t[1] ~= "C" and t[1] ~= "PNG" then
         print("Missing line", line_id, "by", peer_id)
         return
-      end
-
-
-      if t[1] == "PNG" then
-        local png = t[2]
-        local fileData = love.filesystem.newFileData(png, "snapshot.png")
-        local imgData = love.image.newImageData(fileData)
-        local img = love.graphics.newImage(imgData)
-
-        love.graphics.setColor(255, 255, 255)
-        love.graphics.setCanvas(canvas)
-          love.graphics.draw(img)
-        love.graphics.setCanvas()
-
-      elseif t[1] == "STATUS" then
-
-        lines = t[2]
-        for i, peer_lines in pairs(lines) do
-          for ii, line in pairs(peer_lines) do
-            buffer[#buffer + 1] = line
-            print("Added previous line", line.id, "by", line.peer)
-          end
-        end
-
-      elseif t[1] == "C" then -- creating a new line!
-
-        local x, y, width, r, g, b, a, time = t[4], t[5], t[6], t[7], t[8], t[9], t[10], t[11]
-
-        line = {id = line_id, width = width, time = time, x, y}
-        line.color = {r, g, b, a}
-        peer_lines[line_id] = line
-
-        buffer[#buffer + 1] = line
-      
-      elseif t[1] == "d" then -- adding a new point to a line!
-
-        line[#line+1] = tonumber(t[4])
-        line[#line+1] = tonumber(t[5])
-
-      elseif t[1] == "D" then -- deleting a line!
-
-        local line = peer_lines[line_id]
-        peer_lines[line_id] = nil
-        for i, v in pairs(buffer) do
-          if line == v then
-            table.remove(buffer, i)
-            break
-          end
-        end
-
-      elseif t[1] == "S" then -- squashing a line!
-        local line = peer_lines[line_id]
-
-        local c = line.color
-        love.graphics.setColor(c[1] * 255, c[2] * 255, c[3] * 255, c[4] or 255)
-        love.graphics.setLineWidth(line.width)
-        love.graphics.setCanvas(canvas)
-          love.graphics.circle("fill", line[1], line[2], line.width / 2, line.width)
-          if #line >= 4 then
-            love.graphics.circle("fill", line[#line-1], line[#line], line.width / 2, line.width)
-            love.graphics.line(line)
-          end
-        love.graphics.setCanvas()
-
-        peer_lines[line.id] = nil
-
-        for i, v in ipairs(buffer) do
-          if v == line then
-            table.remove(buffer, i)
-            break
-          end
-        end
-
-      elseif t[1] == "ID" then
-
-        self_id = peer_id
-
-      elseif t[1] == "f" then
-
-        if self_id == peer_id then
-
-          temp_lines[tonumber(line_id)] = nil
-
-        end
-
       end
 
     else
