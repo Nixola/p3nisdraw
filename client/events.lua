@@ -22,7 +22,6 @@ events.start = function(event)
   for i, peerLines in pairs(lines) do
     for ii, line in pairs(peerLines) do
       buffer[#buffer + 1] = line
-      print("Added existing line", line.id, "by", line.peer)
     end
   end
 
@@ -36,8 +35,8 @@ events.create = function(event)
 
   local line = {
     id = event.lineID,
-    width = event.width,
-    startTime = event.startTime,
+    size = event.size,
+    startTime = event.time,
     order = event.order,
     color = event.color,
     event.x, event.y
@@ -76,16 +75,19 @@ end
 
 events.squash = function(event)
 
+  print(("Squashing lines[%s][%s]"):format(event.peerID, event.lineID))
+
   local line = lines[event.peerID][event.lineID]
 
   local c = line.color
+  print(c[1] * 255, c[2] * 255, c[3] * 255, (c[4] or 1) * 255)
   love.graphics.setColor(c[1] * 255, c[2] * 255, c[3] * 255, (c[4] or 1) * 255)
-  love.graphics.setLineWidth(line.width)
+  love.graphics.setLineWidth(line.size)
   love.graphics.setCanvas(canvas)
 
-    love.graphics.circle("fill", line[1], line[2], line.width / 2, line.width)
+    love.graphics.circle("fill", line[1], line[2], line.size / 2, line.size)
     if #line >= 4 then
-      love.graphics.circle("fill", line[#line - 1], line[#line], line.width / 2, line.width)
+      love.graphics.circle("fill", line[#line - 1], line[#line], line.size / 2, line.size)
       love.graphics.line(line)
     end
 
@@ -103,6 +105,13 @@ events.finish = function(event)
   end
 
   lines[event.peerID][event.lineID].endTime = event.endTime
+
+end
+
+
+events.connect = function(event)
+  
+  lines[event.peerID] = {}
 
 end
 

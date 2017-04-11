@@ -21,12 +21,11 @@ config.port    = config.port    or 42069
 local host = enet.host_create()
 local server = host:connect(config.address .. ":" .. config.port)
 
-local self_id
 
-local line_id = 0
-local temp_line
+local lineID = 0
+local tempLine
 
-temp_lines = {}
+tempLines = {}
 lines = {}
 buffer = {}
 
@@ -47,31 +46,9 @@ love.update = function(dt)
     local event = host:service(0)
 
     if event and event.type == "receive" then
-      --local t = {}
 
-      --for part in event.data:gmatch("([^:]+)") do
-      --  t[#t+1] = part
-      --end
-
-      local t = binser.d(event.data)
-
-      local peer_id = t[2] 
-      local line_id = t[3] -- clients can choose their own line IDs, as every client has its own table
-
-      local peer_lines, line
-
-      peer_lines = lines[peer_id]
-      if not peer_lines and t[1] ~= "PNG" then
-        print("No lines by", peer_id)
-        peer_lines = {}
-        lines[peer_id] = peer_lines
-      end
-
-      local line = peer_lines and peer_lines[line_id]
-      if not line and t[1] ~= "C" and t[1] ~= "PNG" then
-        print("Missing line", line_id, "by", peer_id)
-        return
-      end
+      local t = binser.d(event.data)[1]
+      events[t.type](t)
 
     else
       break
@@ -91,7 +68,7 @@ love.draw = function()
 
   local mx, my = love.mouse.getPosition()
 
-  table.sort(buffer, function(a, b) return a.time < b.time end)
+  table.sort(buffer, function(a, b) return (a.order or math.huge) < (b.order or math.huge) end)
 
   for i, line in ipairs(buffer) do
     local c = line.color
@@ -101,8 +78,8 @@ love.draw = function()
     b = b * 255
     a = (a or 1) * 255
     love.graphics.setColor(r,g,b,a)
-    love.graphics.setLineWidth(line.width)
-    love.graphics.circle("fill", line[1], line[2], line.width / 2, line.width)
+    love.graphics.setLineWidth(line.size)
+    love.graphics.circle("fill", line[1], line[2], line.size / 2, line.size)
     if #line >= 4 then
       local t = {}
       for ii = 1, (#line/2) do
@@ -122,12 +99,12 @@ love.draw = function()
         t[#t+1] = x/n
         t[#t+1] = y/n
       end
-      love.graphics.circle("fill", line[#line-1], line[#line], line.width / 2, line.width)
+      love.graphics.circle("fill", line[#line-1], line[#line], line.size / 2, line.size)
       love.graphics.line(smoothing and t or line)
     end
   end
 
-  for i, v in pairs(temp_lines) do
+  for i, v in pairs(tempLines) do
     local len = #v / 2
     if len >= 3 then
       local c = v.color
@@ -155,8 +132,8 @@ end
 
 love.keypressed = function(key, scan)
   if scan == "z" and love.keyboard.isDown("ctrl", "lctrl", "rctrl") then
-    server:send(binser.s("D", line_id))
-    line_id = line_id - 1
+    server:send(binser.s{type = "delete", lineID = lineID})
+    lineID = lineID - 1
   elseif scan == "up" then
     smoothing = smoothing + 1
     print("Smoothing:", smoothing)
@@ -170,11 +147,11 @@ end
 
 love.mousepressed = function(x, y, butt)
   if butt == 1 then -- create a line!
-    line_id = line_id + 1
-    temp_line = {size = size, color = {r, g, b, a}, x, y}
-    --server:send("C:" .. line_id .. ":" .. x .. ":" .. y .. ":3:1:1:1:1")
-    server:send(binser.s("C", line_id, x, y, size, r, g, b, a))
-    temp_lines[line_id] = temp_line
+    lineID = lineID + 1
+    tempLine = {size = size, color = {r, g, b, a}, x, y}
+    local t = {type = "create", lineID = lineID, x = x, y = y, size = size, color = {r, g, b, a}}
+    server:send(binser.s(t))
+    tempLines[lineID] = tempLine
   elseif butt == 2 then
     CP:create(x - 192, y - 192, 192)
     colorPicker = CP
@@ -183,11 +160,10 @@ end
 
 
 love.mousemoved = function(x, y, dx, dy)
-  if temp_line then -- we're drawing
-    temp_line[#temp_line + 1] = x
-    temp_line[#temp_line + 1] = y
-    --server:send("d:" .. line_id .. ":" .. x .. ":" .. y)
-    server:send(binser.s("d", line_id, x, y))
+  if tempLine then -- we're drawing
+    tempLine[#tempLine + 1] = x
+    tempLine[#tempLine + 1] = y
+    server:send(binser.s{type = "draw", lineID = lineID, x = x, y = y})
   end
 end
 
@@ -197,10 +173,10 @@ love.wheelmoved = function(dx, dy)
 end
 
 love.mousereleased = function(x, y, butt)
-  if butt == 1 and temp_line then
-    temp_line = nil
-    --server:send("f:" .. line_id)
-    server:send(binser.s("f", line_id, x, y))
+  if butt == 1 and tempLine then
+    tempLine = nil
+    --server:send(binser.s("f", lineID, x, y))
+    server:send(binser.s{type = "finish", lineID = lineID, x = x, y = y})
   elseif butt == 2 then
     r, g, b = unpack(colorPicker.nc or colorPicker.sc)
     r = r / 255

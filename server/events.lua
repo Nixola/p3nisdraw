@@ -15,12 +15,14 @@ events.create = function(event)
   event.time = time
   event.order = order
 
-  local line = {lineID = event.lineID, width = event.width, color = event.color, peerID = event.peerID, event.x, event.y}
+  print("Created line", event.peerID, event.lineID)
+
+  local line = {lineID = event.lineID, size = event.size, color = event.color, peerID = event.peerID, event.x, event.y}
   line.startTime = time
   line.order = order
 
-  local peerLines = lines[event.peerID]
-  peerLines[event.lineID] = line
+  lines[event.peerID][event.lineID] = line
+  print("Line:", lines[event.peerID][event.lineID])
   buffer[#buffer + 1] = line
 
   table.sort(buffer, function(a, b)
@@ -35,20 +37,20 @@ events.create = function(event)
     local line = buffer[i]
     if not line then break end
     if line.endTime and (time - line.endTime > 120) then
-      returns[#returns + 1] = {type = "squash", lineID = line.lineID, broadcast = true}
-      cr:moveTo(line[1], line[2])
+      returns[#returns + 1] = {type = "squash", lineID = line.lineID, peerID = line.peerID, broadcast = true}
+      cr:move_to(line[1], line[2])
       for i = 2, #line / 2 do
         local x, y = line[i * 2 - 1], line[i * 2]
         cr:line_to(x, y)
       end
 
-      cr.line_width = line.width
+      cr.line_width = line.size
       cr.line_cap = "ROUND"
       cr:set_source_rgba(unpack(line.color))
       cr:stroke()
 
       table.remove(buffer, i)
-      peerLines[line.id] = nil
+      lines[line.peerID][line.lineID] = nil
       i = i - 1
     end
 
@@ -78,6 +80,7 @@ events.finish = function(event)
   event.time = os.time()
 
   local line = lines[event.peerID][event.lineID]
+  print("Finishing line", event.peerID, event.lineID)
   line.endTime = event.time
 
   event.broadcast = true
@@ -86,6 +89,7 @@ end
 
 
 events.delete = function(event)
+
   local line = lines[event.peerID][event.lineID]
 
   for i, v in ipairs(buffer) do
@@ -107,6 +111,8 @@ events.connect = function(peerID) -- this is different
   event.lines = lines
   event.id = peerID
 
+  lines[peerID] = {}
+
   local filename = os.tmpname()
   surface:write_to_png(filename)
 
@@ -119,3 +125,6 @@ events.connect = function(peerID) -- this is different
 
   return {event}
 end
+
+
+return events

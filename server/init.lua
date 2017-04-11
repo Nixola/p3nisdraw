@@ -22,14 +22,15 @@ while true do
      send = events.connect(event.peer:connect_id())
   
   elseif event and event.type == "receive" then
-    --local t = {}
-    --for part in event.data:gmatch("([^:]+)") do
-    --  t[#t+1] = part
-    --end
-    local t = binser.d(event.data)
+    local result
+    local t = binser.d(event.data)[1]
     t.peerID = event.peer:connect_id()
 
-    send = events[t.type](t)
+    result, send = pcall(events[t.type], t)
+    if not result then
+      print("Error in event", event.type, send)
+      send = false
+    end
 
   end
 
