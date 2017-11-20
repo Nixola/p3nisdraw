@@ -3,7 +3,6 @@ local events = {}
 local lines = lines
 local buffer = buffer
 local tempLines = tempLines
-local canvas = canvas
 
 
 events.start = function(event)
@@ -80,7 +79,6 @@ events.squash = function(event)
   local line = lines[event.peerID][event.lineID]
 
   local c = line.color
-  print(c[1] * 255, c[2] * 255, c[3] * 255, (c[4] or 1) * 255)
   love.graphics.setColor(c[1] * 255, c[2] * 255, c[3] * 255, (c[4] or 1) * 255)
   love.graphics.setLineWidth(line.size)
   love.graphics.setCanvas(canvas)
