@@ -36,6 +36,7 @@ while true do
 
   if send then
     for i, ev in ipairs(send) do
+      print("Sending event of type", "." .. ev.type .. ".")
       if ev.broadcast then
         host:broadcast(binser.s(ev))
       else

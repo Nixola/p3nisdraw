@@ -49,6 +49,7 @@ love.update = function(dt)
     if event and event.type == "receive" then
 
       local t = binser.d(event.data)[1]
+      print("Received event of type", t.type)
       events[t.type](t)
 
     else

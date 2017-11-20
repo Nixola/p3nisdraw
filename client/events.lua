@@ -40,6 +40,7 @@ events.create = function(event)
     color = event.color,
     event.x, event.y
   }
+  print("Line from", event.peerID, lines[event.peerID])
   lines[event.peerID][event.lineID] = line
   buffer[#buffer + 1] = line
 
@@ -108,8 +109,12 @@ end
 
 
 events.connect = function(event)
+
+  if event.peerID == selfID then print("Self connect") return end
   
   lines[event.peerID] = {}
+
+  print("Someone connected!", event.peerID, lines[event.peerID])
 
 end
 

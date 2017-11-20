@@ -123,7 +123,11 @@ events.connect = function(peerID) -- this is different
 
   event.png = png
 
-  return {event}
+  local connect = {type = "connect"}
+  connect.broadcast = true
+  connect.peerID = peerID
+
+  return {event, connect}
 end
 
 
