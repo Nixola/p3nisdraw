@@ -13,6 +13,7 @@ require "love.window"
 local smoothing = 0 --DEBUG
 
 local CP = require "colorPicker"
+local smooth = require "smooth"
 
 config.address = config.address or "nixola.me"
 config.port    = config.port    or 42069
@@ -81,26 +82,9 @@ love.draw = function()
     love.graphics.setLineWidth(line.size)
     love.graphics.circle("fill", line[1], line[2], line.size / 2, line.size)
     if #line >= 4 then
-      local t = {}
-      for ii = 1, (#line/2) do
-        local x, y = line[ii*2-1], line[ii*2]
-        local n = 1
-        for iii = 1, smoothing do
-          local x1, y1 = line[ii*2-iii*2-1], line[ii*2-iii*2]
-          local x2, y2 = line[ii*2+iii*2-1], line[ii*2+iii*2]
-          if x1 and y1 and x2 and y2 then
-            n = n + 2
-            x = x + x1
-            y = y + y1
-            x = x + x2
-            y = y + y2
-          end
-        end
-        t[#t+1] = x/n
-        t[#t+1] = y/n
-      end
+      local t = smooth(line, 3)
       love.graphics.circle("fill", line[#line-1], line[#line], line.size / 2, line.size)
-      love.graphics.line(smoothing and t or line)
+      love.graphics.line(t)
     end
   end
 
