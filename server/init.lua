@@ -1,5 +1,13 @@
 local events = require "events"
 
+local socket = require "socket" --I'm gonna need LuaSocket for non-blocking keyboard input. ew.
+local input  = socket.tcp()
+input:close()
+input:setfd(0)
+inputT = {input}
+
+
+
 lines = {}
 buffer = {}
 
@@ -16,6 +24,14 @@ end
 
 
 while true do
+  --handle keyboard input, if any
+  local readable = socket.select(inputT, nil, 0)
+  if readable[input] then
+    local line = io.read("*l")
+    print("Read line", line)
+  end
+
+  --then network input
   local event = host:service(100)
   local send
   if event and event.type == "connect" then
