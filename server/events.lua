@@ -4,6 +4,8 @@ local cairo = require "lgi".cairo
 local surface = cairo.ImageSurface.create("ARGB32", 1280, 720)
 local cr = cairo.Context.create(surface)
 
+local smooth = require "smooth"
+
 -- event handlers return a table of events. Every event in the table contains a boolean, "broadcast",
 -- which specifies whether the returned event should be broadcast to everyone or not. If not, it's just
 -- sent to the sender. The table is to be iterated in order, as the order of events (obviously) matters.
@@ -37,10 +39,11 @@ events.create = function(event)
     local line = buffer[i]
     if not line then break end
     if line.endTime and (time - line.endTime > 120) then
+      local t = smooth(line, 3)
       returns[#returns + 1] = {type = "squash", lineID = line.lineID, peerID = line.peerID, broadcast = true}
-      cr:move_to(line[1], line[2])
-      for i = 2, #line / 2 do
-        local x, y = line[i * 2 - 1], line[i * 2]
+      cr:move_to(t[1], t[2])
+      for i = 2, #t / 2 do
+        local x, y = t[i * 2 - 1], t[i * 2]
         cr:line_to(x, y)
       end
 
