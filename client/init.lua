@@ -67,3 +67,9 @@ love.mousereleased = function(x, y, b)
     state:mousereleased(x, y, b)
   end
 end
+
+love.wheelmoved = function(wx, wy)
+  if state.wheelmoved then
+    state:wheelmoved(wx, wy)
+  end
+end
