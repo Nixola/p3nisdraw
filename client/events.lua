@@ -4,6 +4,8 @@ local lines = lines
 local buffer = buffer
 local tempLines = tempLines
 
+local smooth = require "smooth"
+
 
 events.start = function(event)
   -- PNG
@@ -86,8 +88,9 @@ events.squash = function(event)
 
     love.graphics.circle("fill", line[1], line[2], line.size / 2, line.size)
     if #line >= 4 then
-      love.graphics.circle("fill", line[#line - 1], line[#line], line.size / 2, line.size)
-      love.graphics.line(line)
+      local t = smooth(line, 3)
+      love.graphics.circle("fill", line[#line-1], line[#line], line.size / 2, line.size)
+      love.graphics.line(t)
     end
 
   love.graphics.setCanvas()
