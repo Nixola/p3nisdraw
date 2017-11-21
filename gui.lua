@@ -659,7 +659,7 @@ return function()
 
 		local p1, p2 = self.text:sub(1, self.cursor), self.text:sub(self.cursor+1, -1)
 			
-		self.text = p1 .. key .. p2
+		self.text = p1 .. char .. p2
 		
 		self.cursor = self.cursor + 1
 	end
@@ -678,7 +678,7 @@ return function()
 			
 		end
 		
-		if uni == 8 and self.cursor ~= 0 then
+		if scancode == 'backspace' and self.cursor ~= 0 then
 		
 			self.text = self.text:sub(1, self.cursor-1) .. self.text:sub(self.cursor+1, -1)
 			
@@ -686,7 +686,7 @@ return function()
 			
 		end
 		
-		if uni == 127 and self.cursor ~= #self.text then
+		if scancode == 'delete' and self.cursor ~= #self.text then
 		
 			self.text = self.text:sub(1, self.cursor) .. self.text:sub(self.cursor+2, -1)
 			
@@ -705,10 +705,21 @@ return function()
 		end
 		
 		if key == 'return' then
-		
+			
 			self:enter()
 			
 		end
+
+		if scancode == 'tab' then
+
+			local newid = self.id % #self.__textLines + 1
+			print(self.id, #self.__textLines, newid)
+
+			self.__textLines[newid].focus = true
+			self.focus = false
+			return true
+		end
+
 		
 	end
 
@@ -1243,7 +1254,7 @@ return function()
 				
 					self.textLine.cursorTime = 0
 					
-					v:keypressed(key, scan)
+					if v:keypressed(key, scan) then break end
 					
 				end
 				

@@ -12,15 +12,15 @@ local colorPicker
 
 local size, r, g, b, a = 3, 1, 1, 1, 1
 
-game.connect = function(nick, address)
+game.connect = function(self, nick, address)
 
-	game.host = enet.host_create()
-	local result, r1 = pcall(game.host.connect, game.host, address)
+	self.host = enet.host_create()
+	local result, r1 = pcall(self.host.connect, self.host, address)
 	print(address)
 	if not result then
 		return nil, r1
 	end
-	game.server = r1
+	self.server = r1
 	return true
 end
 

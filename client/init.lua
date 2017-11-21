@@ -11,15 +11,15 @@ require "love.window"
 
 love.window.setMode(1280, 720)
 
+tempLines = {}
+lines = {}
+buffer = {}
+
 states = {}
 states.game = require "game"
 states.menu = require "menu"
 
 state = states.menu
-
-tempLines = {}
-lines = {}
-buffer = {}
 
 canvas = love.graphics.newCanvas(1280, 720)
 
@@ -32,13 +32,11 @@ love.update = function(dt)
   end
 end
 
-
 love.draw = function()
   if state.draw then
     state:draw()
   end
 end
-
 
 love.mousepressed = function(x, y, b)
   if state.mousepressed then
@@ -46,10 +44,15 @@ love.mousepressed = function(x, y, b)
   end
 end
 
-
 love.keypressed = function(k, kk)
   if state.keypressed then
     state:keypressed(k, kk)
+  end
+end
+
+love.textinput = function(char)
+  if state.textinput then
+    state:textinput(char)
   end
 end
 

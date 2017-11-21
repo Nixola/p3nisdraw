@@ -1,14 +1,9 @@
 local menu = {}
 
 local gui = require "gui"()
-local connect
+local nick, addr, err
 
-local err  = gui:newLabel(32, 310, "", {255, 0, 0})
-
-local nick = gui:newTextLine(32, 330, connect, "Nickname")
-local addr = gui:newTextLine(32, 350, connect, "nixo.la:42069")
-
-connect = function()
+local connect = function()
 	local n = nick:getText()
 	local a = addr:getText()
 
@@ -20,7 +15,13 @@ connect = function()
 	end
 end
 
-gui:newButton(32, 450, connect, "Connect!")
+err  = gui:newLabel(32, 290, "", {255, 0, 0})
+nick = gui:newTextLine(32, 310, function() connect() end, "Nickname", 178)
+addr = gui:newTextLine(32, 340, function() connect() end, "nixo.la:42069", 178)
+
+
+
+gui:newButton(148, 370, connect, "Connect!")
 
 
 menu.update = function(self, dt)
@@ -42,5 +43,9 @@ menu.keypressed = function(self, k, kk)
 	gui:keypressed(k, kk)
 end
 
+
+menu.textinput = function(self, char)
+	gui:textinput(char)
+end
 
 return menu
