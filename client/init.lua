@@ -15,7 +15,7 @@ local smoothing = 0 --DEBUG
 local CP = require "colorPicker"
 local smooth = require "smooth"
 
-config.address = config.address or "nixola.me"
+config.address = config.address or "nixo.la"
 config.port    = config.port    or 42069
 
 --local host = enet.host_create(config.address .. ":" .. config.port)
