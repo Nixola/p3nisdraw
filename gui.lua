@@ -1,3 +1,6 @@
+local utf8 = require "utf8"
+local UTF8 = require "UTF8"
+
 local clamp = function(min, X, max)
 
         if X < min then return max end
@@ -22,6 +25,22 @@ local setLine = function(size, style)
 	love.graphics.setLineWidth(size)
 	love.graphics.setLineStyle(style)
 end
+
+local getCharAtX = function(font, string, mousex)
+	local prevw = 0
+	local c
+	for i = 1, utf8.len(string) do
+		local s = UTF8.sub(string, 1, i)
+		local w = font:getWidth(s)
+		if w > mousex then
+			return i, (mousex - prevw) / (w - prevw)
+		end
+		prevw = w
+		c = i
+	end
+	return i, 1
+end
+
 
 return function()
 
@@ -608,12 +627,12 @@ return function()
 		love.graphics.setFont(gui.font[self.size])
 		
 		local printX = self.x+1+self.padding
-		
+
 		local labelWidth = love.graphics.getFont():getWidth(self.text)
 		
-		local cursorX = love.graphics.getFont():getWidth(self.text:sub(1, self.cursor)) + self.padding + printX
+		local cursorX = love.graphics.getFont():getWidth(UTF8.sub(self.text, 1, self.cursor)) + printX
 		
-		if cursorX < self.x + 1 + self.padding then
+		if cursorX < printX then
 		
 			printX = printX + (self.x + 1 + self.padding) - cursorX
 			
@@ -621,9 +640,9 @@ return function()
 			
 		end
 		
-		if cursorX > self.x - 2 - self.padding*2 + self.width then
+		if cursorX > printX + self.width then
 		
-			printX = printX - ((self.x + 2 - self.padding*2) - self.width) - cursorX
+			printX = printX - (cursorX - printX - self.width) - self.padding * 2
 			
 			cursorX = self.x + 2 - self.padding*2 + self.width
 			
@@ -644,11 +663,13 @@ return function()
 	end
 
 
-	gui.textLine.clicked = function(self, b)
+	gui.textLine.clicked = function(self, b, x, y)
 
 		if b == 1 then
 		
 			self.focus = true
+
+			local c, p = getCharAtX(gui.font[self.size], self.text, 0)
 			
 		end
 		
@@ -657,7 +678,7 @@ return function()
 
 	gui.textLine.typed = function(self, char)
 
-		local p1, p2 = self.text:sub(1, self.cursor), self.text:sub(self.cursor+1, -1)
+		local p1, p2 = UTF8.sub(self.text, 1, self.cursor), UTF8.sub(self.text, self.cursor+1, utf8.len(self.text))
 			
 		self.text = p1 .. char .. p2
 		
@@ -680,15 +701,15 @@ return function()
 		
 		if scancode == 'backspace' and self.cursor ~= 0 then
 		
-			self.text = self.text:sub(1, self.cursor-1) .. self.text:sub(self.cursor+1, -1)
+			self.text = UTF8.sub(self.text, 1, self.cursor-1) .. UTF8.sub(self.text, self.cursor+1, -1)
 			
 			self.cursor = self.cursor-1
 			
 		end
 		
-		if scancode == 'delete' and self.cursor ~= #self.text then
+		if scancode == 'delete' and self.cursor ~= utf8.len(self.text) then
 		
-			self.text = self.text:sub(1, self.cursor) .. self.text:sub(self.cursor+2, -1)
+			self.text = UTF8.sub(self.text, 1, self.cursor) .. UTF8.sub(self.text, self.cursor+2, -1)
 			
 		end
 		
@@ -713,7 +734,6 @@ return function()
 		if scancode == 'tab' then
 
 			local newid = self.id % #self.__textLines + 1
-			print(self.id, #self.__textLines, newid)
 
 			self.__textLines[newid].focus = true
 			self.focus = false
@@ -1072,7 +1092,7 @@ return function()
 		
 		t.color = color or {border = {}, center = {}, text = {}}
 		
-		t.cursor = #t.text
+		t.cursor = utf8.len(t.text)
 		
 		t.id = #self.__textLines + 1
 		
