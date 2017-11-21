@@ -10,8 +10,6 @@ require "love.touch"
 require "love.window"
 --require "love.thread"
 
-local smoothing = 0 --DEBUG
-
 local CP = require "colorPicker"
 local smooth = require "smooth"
 
@@ -119,13 +117,6 @@ love.keypressed = function(key, scan)
   if scan == "z" and love.keyboard.isDown("ctrl", "lctrl", "rctrl") then
     server:send(binser.s{type = "delete", lineID = lineID})
     lineID = lineID - 1
-  elseif scan == "up" then
-    smoothing = smoothing + 1
-    print("Smoothing:", smoothing)
-  elseif scan == "down" then
-    smoothing = smoothing - 1
-    smoothing = smoothing > 0 and smoothing or 0
-    print("Smoothing:", smoothing)
   end
 end
 
