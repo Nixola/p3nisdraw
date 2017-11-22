@@ -22,6 +22,15 @@ states.menu = require "menu"
 state = states.menu
 
 canvas = love.graphics.newCanvas(1280, 720)
+snapshot = love.graphics.newCanvas(1280, 720)
+
+snap = function()
+  love.graphics.setCanvas(snapshot)
+  love.graphics.clear(0,0,0,255)
+  states.game:draw(true)
+  love.graphics.setCanvas()
+end
+
 
 love.graphics.setLineJoin("bevel")
 

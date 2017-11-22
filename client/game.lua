@@ -47,9 +47,10 @@ game.update = function(self, dt)
 end
 
 
-game.draw = function(self)
+game.draw = function(self, snap)
   love.graphics.setColor(255, 255, 255)
   love.graphics.draw(canvas)
+  love.graphics.setLineStyle("smooth")
 
   local mx, my = love.mouse.getPosition()
 
@@ -71,6 +72,8 @@ game.draw = function(self)
       love.graphics.line(t)
     end
   end
+
+  if snap then return end
 
   for i, v in pairs(tempLines) do
     local len = #v / 2
@@ -102,6 +105,10 @@ game.keypressed = function(self, key, scan)
   if scan == "z" and love.keyboard.isDown("ctrl", "lctrl", "rctrl") then
     self.server:send(binser.s{type = "delete", lineID = lineID})
     lineID = lineID - 1
+  elseif scan == "f12" then
+  	snap()
+  	local imgd = snapshot:newImageData()
+  	local r = imgd:encode("png", os.time() .. ".png")
   end
 end
 
