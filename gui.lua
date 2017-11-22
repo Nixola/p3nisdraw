@@ -626,29 +626,38 @@ return function()
 		
 		love.graphics.setFont(gui.font[self.size])
 		
-		local printX = self.x+1+self.padding
+		--self.printX = self.x+1+self.padding
 
 		local labelWidth = love.graphics.getFont():getWidth(self.text)
 		
-		local cursorX = love.graphics.getFont():getWidth(UTF8.sub(self.text, 1, self.cursor)) + printX
+		local cursorX = love.graphics.getFont():getWidth(UTF8.sub(self.text, 1, self.cursor)) + self.printX
+
+		local dx = cursorX - (self.x + 1 + self.padding)
 		
-		if cursorX < printX then
+		if dx < 16 and self.printX < self.x + 1 + self.padding then
+			print("cursor is left")
 		
-			printX = printX + (self.x + 1 + self.padding) - cursorX
+			self.printX = math.min(self.printX + self.x + 1 + self.padding + 16 - cursorX, self.x + 1 + self.padding)
 			
-			cursorX = self.x + 1 + self.padding
-			
-		end
-		
-		if cursorX > printX + self.width then
-		
-			printX = printX - (cursorX - printX - self.width) - self.padding * 2
-			
-			cursorX = self.x + 2 - self.padding*2 + self.width
+			cursorX = cursorX + 16 - dx
 			
 		end
 		
-		love.graphics.print(self.text, printX, self.y+1+self.padding)
+		if dx > self.width - self.padding - 16 then
+			print("cursor is right")
+		
+			--printX = printX - (cursorX - printX - self.width) - self.padding * 2
+			--self.printX = self.printX + dx - self.width + self.padding + 16
+			self.printX = self.printX + self.x + self.width - cursorX - 15
+
+
+			cursorX = self.x + self.width - 15
+			
+			--cursorX = self.x + 2 - self.padding*2 + self.width
+			
+		end
+		
+		love.graphics.print(self.text, self.printX, self.y+1+self.padding)
 		
 		if self.cursorTime < 0.5 and self.focus then
 		
@@ -1113,6 +1122,8 @@ return function()
 		end
 		
 		setmetatable(t, {__index = function(t,i) return self.textLine[i] end})
+
+		t.printX = t.x + 1 + t.padding
 		
 		table.insert(self.__textLines, t)
 		
