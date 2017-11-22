@@ -39,7 +39,10 @@ events.create = function(event)
     local line = buffer[i]
     if not line then break end
     if line.endTime and (time - line.endTime > 120) then
-      local t = smooth(line, 3)
+      local t = line
+      if #line >= 4 then
+        t = smooth(line, 3)
+      end
       returns[#returns + 1] = {type = "squash", lineID = line.lineID, peerID = line.peerID, broadcast = true}
       cr:move_to(t[1], t[2])
       for i = 2, #t / 2 do
