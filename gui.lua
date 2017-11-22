@@ -619,43 +619,37 @@ return function()
 		love.graphics.setColor(self.color.border)
 		
 		love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
+
+		local labelWidth = love.graphics.getFont():getWidth(self.text)
+
+		local preCursorWidth = love.graphics.getFont():getWidth(UTF8.sub(self.text, 1, self.cursor))
 		
+		local cursorX = preCursorWidth + self.printX
+
+		local marginL, marginR = self.x + 1 + self.padding, self.x - labelWidth + self.width - self.padding
+
+		local dx = cursorX - marginL
+		
+		if dx < 16 and self.printX < marginL then
+
+			self.printX = self.printX + marginL + 16 - cursorX
+			
+		end
+
+		if dx > self.width - self.padding - 16 and self.printX > marginR then
+		
+			self.printX = self.printX + self.x + self.width - cursorX - 15
+			
+		end
+
+		self.printX = math.min(marginL, math.max(marginR, self.printX))
+		cursorX = preCursorWidth + self.printX
+
 		love.graphics.setColor(self.color.text)
 		
 		love.graphics.setScissor(self.x-1+self.padding, self.y+1+self.padding, self.width+2-self.padding*2, self.height-2-self.padding*2)
 		
 		love.graphics.setFont(gui.font[self.size])
-		
-		--self.printX = self.x+1+self.padding
-
-		local labelWidth = love.graphics.getFont():getWidth(self.text)
-		
-		local cursorX = love.graphics.getFont():getWidth(UTF8.sub(self.text, 1, self.cursor)) + self.printX
-
-		local dx = cursorX - (self.x + 1 + self.padding)
-		
-		if dx < 16 and self.printX < self.x + 1 + self.padding then
-			print("cursor is left")
-		
-			self.printX = math.min(self.printX + self.x + 1 + self.padding + 16 - cursorX, self.x + 1 + self.padding)
-			
-			cursorX = cursorX + 16 - dx
-			
-		end
-		
-		if dx > self.width - self.padding - 16 then
-			print("cursor is right")
-		
-			--printX = printX - (cursorX - printX - self.width) - self.padding * 2
-			--self.printX = self.printX + dx - self.width + self.padding + 16
-			self.printX = self.printX + self.x + self.width - cursorX - 15
-
-
-			cursorX = self.x + self.width - 15
-			
-			--cursorX = self.x + 2 - self.padding*2 + self.width
-			
-		end
 		
 		love.graphics.print(self.text, self.printX, self.y+1+self.padding)
 		
