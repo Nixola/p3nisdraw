@@ -1,5 +1,7 @@
 local game = {}
 
+local gui = require "gui"()
+
 local CP = require "colorPicker"
 local smooth = require "smooth"
 
@@ -9,6 +11,8 @@ local tempLine
 local events = require "events"
 
 local colorPicker
+
+local textbox
 
 local size, r, g, b, a = 3, 1, 1, 1, 1
 
@@ -43,6 +47,10 @@ game.update = function(self, dt)
 
   if colorPicker then
     colorPicker:update()
+  end
+  if textbox then
+  	gui:update(dt)
+  	textbox:update(dt)
   end
 end
 
@@ -98,6 +106,10 @@ game.draw = function(self, snap)
     love.graphics.setLineWidth(1)
     love.graphics.circle("line", mx, my, size / 2 + 1, size)
   end
+
+  if textbox then
+  	textbox:draw()
+  end
 end
 
 
@@ -110,6 +122,20 @@ game.keypressed = function(self, key, scan)
   	local imgd = snapshot:newImageData()
   	local r = imgd:encode("png", os.time() .. ".png")
   end
+
+  if scan == "return" then
+	  if textbox then
+	  	textbox:keypressed(key, scan)
+	  else
+	  	textbox = gui:newTextLine(0, 0 - 6, function(self) print(self.text); self:delete(); textbox = nil; end, '', 666, 12, 0, {center = {0,0,0,0}, border={0,0,0,0}, text={255,255,255,255}})
+	  	textbox.update = function(self, dt)
+	  		self.x, self.y = love.mouse.getPosition()
+	  		self.x, self.y = self.x + 8, self.y - 8
+	  	end
+	  	textbox:update(0)
+	  	textbox.focus = true
+	  end
+	end
 end
 
 
@@ -124,8 +150,18 @@ game.mousepressed = function(self, x, y, butt)
     CP:create(x - 192, y - 192, 192)
     colorPicker = CP
   end
+
+  if textbox then
+  	textbox:mousepressed(x, y, butt)
+  end
 end
 
+
+game.textinput = function(self, char)
+	if textbox then
+		textbox:typed(char)
+	end
+end
 
 game.mousemoved = function(self, x, y, dx, dy)
   if tempLine then -- we're drawing
