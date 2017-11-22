@@ -38,7 +38,7 @@ local getCharAtX = function(font, string, mousex)
 		prevw = w
 		c = i
 	end
-	return i, 1
+	return c, 1
 end
 
 
@@ -672,7 +672,9 @@ return function()
 		
 			self.focus = true
 
-			local c, p = getCharAtX(gui.font[self.size], self.text, 0)
+			local c, p = getCharAtX(gui.font[self.size], self.text, x - self.printX)
+
+			self.cursor = c + math.floor(p + 0.5) - 1
 			
 		end
 		
