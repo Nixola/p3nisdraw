@@ -38,7 +38,7 @@ events.create = function(event)
   while true do
     local line = buffer[i]
     if not line then break end
-    if line.endTime and (time - line.endTime > 1) then
+    if line.endTime and (time - line.endTime > 120) then
       local t = line
       returns[#returns + 1] = {type = "squash", lineID = line.lineID, peerID = line.peerID, broadcast = true}
       cr:new_path()
