@@ -27,6 +27,7 @@ local load = function(args)
     package.path = package.path .. ";./server/?.lua"
     require "init"
   else
+    assert(love, "You can't run a client without LÖVE.")
     love.filesystem.setRequirePath(love.filesystem.getRequirePath() .. ";client/?.lua")
     package.path = package.path .. ";./client/?.lua"
     require "client.init"
