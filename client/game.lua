@@ -18,16 +18,15 @@ local textbox
 
 local size, r, g, b, a = 3, 1, 1, 1, 1
 
-game.connect = function(self, nick, address)
+game.connect = function(self, nick, address, port)
 
 	self.host = enet.host_create()
-	local result, r1 = pcall(self.host.connect, self.host, address)
-	print(address)
+	local result, r1 = pcall(self.host.connect, self.host, address .. ":" .. port)
 	if not result then
 		return nil, r1
 	end
 	self.server = r1
-	return true
+	return self.host
 end
 
 
@@ -72,6 +71,9 @@ game.update = function(self, dt)
       local t = binser.d(event.data)[1]
       print("Received event of type", t.type)
       events[t.type](t)
+      if t.type == "start" then
+        return true
+      end
 
     else
       break
