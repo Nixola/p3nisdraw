@@ -5,7 +5,9 @@ local gui = require "gui"()
 local CP = require "colorPicker"
 local smooth = require "smooth"
 
+local nextID = 0
 local lineID = 0
+local textID = 0
 local tempLine
 
 local events = require "events"
@@ -26,6 +28,38 @@ game.connect = function(self, nick, address)
 	end
 	self.server = r1
 	return true
+end
+
+
+game.drawLine = function(self, line)
+
+  local c = line.color
+  local r, g, b, a = unpack(c)
+  r = r * 255
+  g = g * 255
+  b = b * 255
+  a = (a or 1) * 255
+  love.graphics.setColor(r,g,b,a)
+  love.graphics.setLineWidth(line.size)
+  love.graphics.circle("fill", line[1], line[2], line.size / 2, line.size)
+  if #line >= 4 then
+    local t = smooth(line, 3)
+    love.graphics.circle("fill", line[#line-1], line[#line], line.size / 2, line.size)
+    love.graphics.line(t)
+  end
+end
+
+
+game.drawText = function(self, text)
+
+  local r, g, b, a = unpack(text.color)
+  r = r * 255
+  g = g * 255
+  b = b * 255
+  a = (a or 1) * 255
+  love.graphics.setColor(r, g, b, a)
+  love.graphics.setFont(gui.font[text.size])
+  love.graphics.print(text.text, text.x, text.y)
 end
 
 
@@ -65,20 +99,12 @@ game.draw = function(self, snap)
   table.sort(buffer, function(a, b) return (a.order or math.huge) < (b.order or math.huge) end)
 
   for i, line in ipairs(buffer) do
-    local c = line.color
-    local r, g, b, a = unpack(c)
-    r = r * 255
-    g = g * 255
-    b = b * 255
-    a = (a or 1) * 255
-    love.graphics.setColor(r,g,b,a)
-    love.graphics.setLineWidth(line.size)
-    love.graphics.circle("fill", line[1], line[2], line.size / 2, line.size)
-    if #line >= 4 then
-      local t = smooth(line, 3)
-      love.graphics.circle("fill", line[#line-1], line[#line], line.size / 2, line.size)
-      love.graphics.line(t)
+    if line.text then
+      self:drawText(line)
+    else
+      self:drawLine(line)
     end
+
   end
 
   if snap then return end
@@ -115,33 +141,59 @@ end
 
 game.keypressed = function(self, key, scan)
   if scan == "z" and love.keyboard.isDown("ctrl", "lctrl", "rctrl") then
-    self.server:send(binser.s{type = "delete", lineID = lineID})
-    lineID = lineID - 1
+    self.server:send(binser.s{type = "delete", lineID = nextID-1})
+    nextID = nextID - 1
   elseif scan == "f12" then
   	snap()
   	local imgd = snapshot:newImageData()
   	local r = imgd:encode("png", os.time() .. ".png")
   end
 
-  if scan == "return" then
-	  if textbox then
-	  	textbox:keypressed(key, scan)
-	  else
-	  	textbox = gui:newTextLine(0, 0 - 6, function(self) print(self.text); self:delete(); textbox = nil; end, '', 666, 12, 0, {center = {0,0,0,0}, border={0,0,0,0}, text={255,255,255,255}})
-	  	textbox.update = function(self, dt)
-	  		self.x, self.y = love.mouse.getPosition()
-	  		self.x, self.y = self.x + 8, self.y - 8
-	  	end
-	  	textbox:update(0)
-	  	textbox.focus = true
-	  end
+  if scan == "return" and not textbox then
+  	textbox = gui:newTextLine(0, 0 - 6, nil, '', 1280, 720, 0, {center = {0,0,0,0}, border={0,0,0,0}, text={r*255,g*255,b*255,a*255}})
+    local mx, my = love.mouse.getPosition()
+    textID = nextID
+    nextID = nextID + 1
+    local t = {type = "create", lineID = textID, x = mx + 8, y = my - 8, size = size, color = {r, g, b, a}, text = ""}
+    self.server:send(binser.s(t))
+
+  	textbox.update = function(self, dt)
+      self.size = size
+      self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r * 255, g * 255, b * 255, a * 255/4
+  		self.x, self.y = love.mouse.getPosition()
+      self.x = math.floor(self.x + 8)
+      self.y = math.floor(self.y - self.font[self.size]:getHeight()/2)
+      local t = {type = "update", lineID = textID, x = self.x, y = self.y, size = self.size, color = {r, g, b, a}, text = self.text}
+      states.game.server:send(binser.s(t))
+  	end
+
+    textbox:setEnterFunc(function(self)
+      self.size = size
+      self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r * 255, g * 255, b * 255, a * 255
+      self.x, self.y = love.mouse.getPosition()
+      self.x = math.floor(self.x + 8)
+      self.y = math.floor(self.y - self.font[self.size]:getHeight()/2)
+      local t = {type = "finish", lineID = textID, x = self.x, y = self.y, size = self.size, color = {r, g, b, a}, text = self.text}
+      states.game.server:send(binser.s(t))
+      self:delete();
+      textbox = nil;
+    end)
+
+  	textbox:update(0)
+  	textbox.focus = true
+    return
 	end
+
+  if textbox then
+    textbox:keypressed(key, scan)
+  end
 end
 
 
 game.mousepressed = function(self, x, y, butt)
   if butt == 1 then -- create a line!
-    lineID = lineID + 1
+    lineID = nextID
+    nextID = nextID + 1
     tempLine = {size = size, color = {r, g, b, a}, x, y}
     local t = {type = "create", lineID = lineID, x = x, y = y, size = size, color = {r, g, b, a}}
     self.server:send(binser.s(t))
@@ -167,7 +219,7 @@ game.mousemoved = function(self, x, y, dx, dy)
   if tempLine then -- we're drawing
     tempLine[#tempLine + 1] = x
     tempLine[#tempLine + 1] = y
-    self.server:send(binser.s{type = "draw", lineID = lineID, x = x, y = y})
+    self.server:send(binser.s{type = "update", lineID = lineID, x = x, y = y})
   end
 end
 

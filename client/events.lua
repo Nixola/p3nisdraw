@@ -40,6 +40,7 @@ events.create = function(event)
     startTime = event.time,
     order = event.order,
     color = event.color,
+    text = event.text,
     event.x, event.y
   }
   print("Line from", event.peerID, lines[event.peerID])
@@ -49,12 +50,20 @@ events.create = function(event)
 end
 
 
-events.draw = function(event)
+events.update = function(event)
   
   local line = lines[event.peerID][event.lineID]
 
-  line[#line + 1] = event.x
-  line[#line + 1] = event.y
+  if line.text then
+    line.x = event.x
+    line.y = event.y
+    line.text = event.text
+    line.size = event.size
+    line.color = event.color
+  else
+    line[#line + 1] = event.x
+    line[#line + 1] = event.y
+  end
 
 end
 
@@ -81,16 +90,12 @@ events.squash = function(event)
 
   local line = lines[event.peerID][event.lineID]
 
-  local c = line.color
-  love.graphics.setColor(c[1] * 255, c[2] * 255, c[3] * 255, (c[4] or 1) * 255)
-  love.graphics.setLineWidth(line.size)
   love.graphics.setCanvas(canvas)
 
-    love.graphics.circle("fill", line[1], line[2], line.size / 2, line.size)
-    if #line >= 4 then
-      local t = smooth(line, 3)
-      love.graphics.circle("fill", line[#line-1], line[#line], line.size / 2, line.size)
-      love.graphics.line(t)
+    if line.text then
+      states.game:drawText(line)
+    else
+      states.game:drawLine(line)
     end
 
   love.graphics.setCanvas()

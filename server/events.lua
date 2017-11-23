@@ -3,7 +3,7 @@ local events = {}
 local cairo = require "lgi".cairo
 local surface = cairo.ImageSurface.create("ARGB32", 1280, 720)
 local cr = cairo.Context.create(surface)
-
+cr:select_font_face("Vera")
 local smooth = require "smooth"
 
 -- event handlers return a table of events. Every event in the table contains a boolean, "broadcast",
@@ -19,7 +19,7 @@ events.create = function(event)
 
   print("Created line", event.peerID, event.lineID)
 
-  local line = {lineID = event.lineID, size = event.size, color = event.color, peerID = event.peerID, event.x, event.y}
+  local line = {lineID = event.lineID, size = event.size, color = event.color, peerID = event.peerID, text = event.text, event.x, event.y}
   line.startTime = time
   line.order = order
 
@@ -38,22 +38,32 @@ events.create = function(event)
   while true do
     local line = buffer[i]
     if not line then break end
-    if line.endTime and (time - line.endTime > 120) then
+    if line.endTime and (time - line.endTime > 1) then
       local t = line
-      if #line >= 4 then
-        t = smooth(line, 3)
-      end
       returns[#returns + 1] = {type = "squash", lineID = line.lineID, peerID = line.peerID, broadcast = true}
-      cr:move_to(t[1], t[2])
-      for i = 2, #t / 2 do
-        local x, y = t[i * 2 - 1], t[i * 2]
-        cr:line_to(x, y)
-      end
+      cr:new_path()
+      if line.text then --it's text
+        cr:set_font_size(line.size)
+        local extents = cr:text_extents(line.text)
+        cr:move_to(t[1] + extents.x_bearing, t[2] + extents.y_bearing)
+        cr:set_source_rgba(unpack(line.color))
+        cr:text_path(line.text)
+        cr:fill()
+      else
+        cr:move_to(t[1], t[2])
+        if #line >= 4 then
+          t = smooth(line, 3)
+        end
+        for i = 2, #t / 2 do
+          local x, y = t[i * 2 - 1], t[i * 2]
+          cr:line_to(x, y)
+        end
 
-      cr.line_width = line.size
-      cr.line_cap = "ROUND"
-      cr:set_source_rgba(unpack(line.color))
-      cr:stroke()
+        cr.line_width = line.size
+        cr.line_cap = "ROUND"
+        cr:set_source_rgba(unpack(line.color))
+        cr:stroke()
+      end
 
       table.remove(buffer, i)
       lines[line.peerID][line.lineID] = nil
@@ -67,15 +77,23 @@ events.create = function(event)
 end
 
 
-events.draw = function(event)
+events.update = function(event)
   local line = lines[event.peerID][event.lineID]
   if not line then
     print("Error! Missing line", event.lineID .. " (" .. type(event.lineID) .. ")", "by", event.peerID)
     return
   end
 
-  line[#line + 1] = event.x
-  line[#line + 1] = event.y
+  if line.text then
+    line.x = event.x
+    line.y = event.y
+    line.text = event.text
+    line.size = event.size
+    line.color = event.color
+  else
+    line[#line + 1] = event.x
+    line[#line + 1] = event.y
+  end
 
   event.broadcast = true
   return {event}

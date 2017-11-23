@@ -42,6 +42,11 @@ while true do
     local t = binser.d(event.data)[1]
     t.peerID = event.peer:connect_id()
 
+    if not events[t.type] then
+      print("Received invalid event (" .. t.type .. "). Ignoring.")
+      send = false
+    end
+
     result, send = pcall(events[t.type], t)
     if not result then
       print("Error in event", event.type, send)
