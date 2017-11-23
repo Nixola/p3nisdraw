@@ -38,14 +38,14 @@ events.create = function(event)
   while true do
     local line = buffer[i]
     if not line then break end
-    if line.endTime and (time - line.endTime > 120) then
+    if line.endTime and (time - line.endTime > 1) then
       local t = line
       returns[#returns + 1] = {type = "squash", lineID = line.lineID, peerID = line.peerID, broadcast = true}
       cr:new_path()
       if line.text then --it's text
         cr:set_font_size(line.size)
-        local extents = cr:text_extents(line.text)
-        cr:move_to(t[1] + extents.x_bearing, t[2] + extents.y_bearing)
+        local fextents = cr:font_extents()
+        cr:move_to(t[1], t[2] + fextents.ascent)
         cr:set_source_rgba(unpack(line.color))
         cr:text_path(line.text)
         cr:fill()
@@ -85,8 +85,8 @@ events.update = function(event)
   end
 
   if line.text then
-    line.x = event.x
-    line.y = event.y
+    line[1] = event.x
+    line[2] = event.y
     line.text = event.text
     line.size = event.size
     line.color = event.color
