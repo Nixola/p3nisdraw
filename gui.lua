@@ -611,6 +611,8 @@ return function()
 	gui.textLine.draw = function(self)
 
 		setLine(1, 'smooth')
+
+		local font = self.font[self.size]
 		
 		love.graphics.setColor(self.color.center)
 		
@@ -620,9 +622,9 @@ return function()
 		
 		love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
 
-		local labelWidth = love.graphics.getFont():getWidth(self.text)
+		local labelWidth = font:getWidth(self.text)
 
-		local preCursorWidth = love.graphics.getFont():getWidth(UTF8.sub(self.text, 1, self.cursor))
+		local preCursorWidth = font:getWidth(UTF8.sub(self.text, 1, self.cursor))
 		
 		local cursorX = preCursorWidth + self.printX
 
@@ -657,7 +659,7 @@ return function()
 		
 			setLine(1, 'rough')
 			
-			love.graphics.line(cursorX, 1, cursorX, 1080)
+			love.graphics.line(cursorX, self.y - self.padding, cursorX, self.y + self.font[self.size]:getHeight() + self.padding)
 			
 		end
 		
