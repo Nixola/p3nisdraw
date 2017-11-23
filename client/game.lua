@@ -59,7 +59,7 @@ game.drawText = function(self, text)
   a = (a or 1) * 255
   love.graphics.setColor(r, g, b, a)
   love.graphics.setFont(gui.font[text.size])
-  love.graphics.print(text.text, text.x, text.y)
+  love.graphics.print(text.text, text[1], text[2])
 end
 
 

@@ -55,8 +55,8 @@ events.update = function(event)
   local line = lines[event.peerID][event.lineID]
 
   if line.text then
-    line.x = event.x
-    line.y = event.y
+    line[1] = event.x
+    line[2] = event.y
     line.text = event.text
     line.size = event.size
     line.color = event.color
