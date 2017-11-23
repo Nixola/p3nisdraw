@@ -17,7 +17,7 @@ end
 
 err  = gui:newLabel(32, 290, "", {255, 0, 0})
 nick = gui:newTextLine(32, 310, function() connect() end, "Nickname", 178)
-addr = gui:newTextLine(32, 340, function() connect() end, "nixo.la:42069", 178)
+addr = gui:newTextLine(32, 340, function() connect() end, config.address and (config.address:match("%:%d+$") and config.address or (config.address .. ":42069")) or "nixo.la:42069", 178)
 
 
 
