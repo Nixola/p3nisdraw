@@ -99,6 +99,7 @@ return function()
 	gui.label.draw = function(self)
 
 		love.graphics.setFont(gui.font[self.size])
+		love.graphics.setColor(self.color)
 		
 		love.graphics.print(self.label, self.x, self.y)
 		
