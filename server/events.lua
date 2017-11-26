@@ -106,6 +106,9 @@ events.finish = function(event)
   local line = lines[event.peerID][event.lineID]
   print("Finishing line", event.peerID, event.lineID)
   line.endTime = event.time
+  for i, v in ipairs(event) do
+    line[#line + 1] = v
+  end
 
   event.broadcast = true
   return {event}
