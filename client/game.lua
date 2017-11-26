@@ -166,17 +166,42 @@ game.keypressed = function(self, key, scan)
       self.x = math.floor(self.x + 8)
       self.y = math.floor(self.y - self.font[self.size]:getHeight()/2)
       local t = {type = "update", lineID = textID, x = self.x, y = self.y, size = self.size, color = {r, g, b, a}, text = self.text}
+      if self.text:match("^/") then return end
       states.game.server:send(binser.s(t))
   	end
 
     textbox:setEnterFunc(function(self)
-      self.size = size
-      self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r * 255, g * 255, b * 255, a * 255
-      self.x, self.y = love.mouse.getPosition()
-      self.x = math.floor(self.x + 8)
-      self.y = math.floor(self.y - self.font[self.size]:getHeight()/2)
-      local t = {type = "finish", lineID = textID, x = self.x, y = self.y, size = self.size, color = {r, g, b, a}, text = self.text}
-      states.game.server:send(binser.s(t))
+      if self.text:match("^/") then
+        local parts = self.text:split(" ")
+        print("parts", unpack(parts))
+        local cmd = parts[1]:match("^/(.-)$")
+        table.remove(parts, 1)
+        local i = 1
+        while i < #parts do
+          local p = parts[i]
+          p = p:gsub("%\\(.)", "%1")
+          if p:match("\\$") and parts[i+1] then
+            parts[i] = p .. parts[i+1]
+            table.remove(parts, i+1)
+          else
+            parts[i] = p
+            i = i + 1
+          end
+        end
+        print(unpack(parts))
+        local t = {type = "finish", lineID = textID, text = ""}
+        local t2 = {type = "delete", lineID = textID}
+        states.game.server:send(binser.s(t))
+        states.game.server:send(binser.s(t2))
+      else
+        self.size = size
+        self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r * 255, g * 255, b * 255, a * 255
+        self.x, self.y = love.mouse.getPosition()
+        self.x = math.floor(self.x + 8)
+        self.y = math.floor(self.y - self.font[self.size]:getHeight()/2)
+        local t = {type = "finish", lineID = textID, x = self.x, y = self.y, size = self.size, color = {r, g, b, a}, text = self.text}
+        states.game.server:send(binser.s(t))
+      end
       self:delete();
       textbox = nil;
     end)
@@ -188,6 +213,15 @@ game.keypressed = function(self, key, scan)
 
   if textbox then
     textbox:keypressed(key, scan)
+  end
+
+  if scan == "escape" and textbox then
+    local t = {type = "finish", lineID = textID, text = ""}
+    local t2 = {type = "delete", lineID = textID}
+    states.game.server:send(binser.s(t))
+    states.game.server:send(binser.s(t2))
+    textbox:delete()
+    textbox = nil
   end
 end
 
