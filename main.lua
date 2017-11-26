@@ -5,6 +5,15 @@ binser = require "binser.binser"
 
 pprint = require "pprint"
 
+string.split = function(str, sep)
+  assert(#sep == 1, "FUCK OFF")
+  local t = {}
+  for piece in str:gmatch("([^" .. sep .. "]+)") do
+    t[#t+1] = piece
+  end
+  return t
+end
+
 local load = function(args)
   if love then
     table.remove(arg, 1)
