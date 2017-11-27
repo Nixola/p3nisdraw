@@ -1,6 +1,7 @@
 local smooth = {}
 smooth.smooth = function(line, smoothness)
 	assert(#line >= 4 and #line % 2 == 0, "Invalid line")
+	assert(smoothness, "Specify a smoothness you dumbass")
   local t = {}
   for ii = 1, (#line/2) do
     local x, y = line[ii*2-1], line[ii*2]
