@@ -204,7 +204,7 @@ game.keypressed = function(self, key, scan)
         states.game.server:send(binser.s(t2))
         if commands[cmd] then
         	local res = commands[cmd](unpack(parts))
-        	if not tempLine then
+        	if not tempLine and res then
         		lineID = nextID
         		tempLine = res
         		tempLine.lineID = lineID
