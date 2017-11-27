@@ -113,7 +113,13 @@ events.finish = function(event)
     tempLines[event.lineID] = nil
   end
 
-  lines[event.peerID][event.lineID].endTime = event.endTime
+  local line = lines[event.peerID][event.lineID]
+
+  line.endTime = event.endTime
+
+  for i, v in ipairs(event) do
+    line[#line + 1] = v
+  end
 
 end
 
