@@ -137,12 +137,28 @@ end
 
 events.connect = function(event)
   print(event)
+  local nick = event.nick
+  local onick = nick
+  local i = 1
+  while peers_by.nick[nick] do --a user with the same nick already logged in
+    nick = onick .." - " .. i
+    i = i + 1
+  end
   local peerID = event.peerID
-  peers_by.nick[event.nick] = peers_by.id[peerID]
-  peers_by.obj[peers_by.id[peerID]].nick = nick
+  local peer = peers_by.id[peerID]
+  peers_by.nick[nick] = peer
+  peers_by.obj[peer].nick = nick
   local ev = {type = "start"}
   ev.lines = lines
   ev.id = peerID
+
+  ev.peers = {nick = {}, id = {}}
+  for obj, info in pairs(peers_by.obj) do
+    ev.peers.nick[info.nick] = info.id
+    ev.peers.id[info.id] = info.nick
+  end
+
+  pprint(ev.peers)
 
   lines[peerID] = {}
 
@@ -156,7 +172,7 @@ events.connect = function(event)
 
   ev.png = png
 
-  local connect = {type = "connect", nick = event.nick}
+  local connect = {type = "connect", nick = nick}
   connect.broadcast = true
   connect.peerID = peerID
 

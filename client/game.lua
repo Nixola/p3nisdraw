@@ -18,7 +18,12 @@ local colorPicker
 
 local textbox
 
+local dbg
+
 local size, r, g, b, a = 3, 1, 1, 1, 1
+
+local randomRGB = love.math.newRandomGenerator()
+local cacheRGB = setmetatable({}, {__index = function(self, k) randomRGB:setSeed(tonumber(k)); self[k] = {randomRGB:random(256)-1, randomRGB:random(256)-1, randomRGB:random(256)-1}; return self[k]; end})
 
 game.connect = function(self, nick, address, port)
 
@@ -33,7 +38,7 @@ game.connect = function(self, nick, address, port)
 end
 
 
-game.drawLine = function(self, line)
+game.drawLine = function(self, line, dbg)
 
   local c = line.color
   local r, g, b, a = unpack(c)
@@ -41,14 +46,33 @@ game.drawLine = function(self, line)
   g = g * 255
   b = b * 255
   a = (a or 1) * 255
+  local t = line
   love.graphics.setColor(r,g,b,a)
   love.graphics.setLineWidth(line.size)
   love.graphics.circle("fill", line[1], line[2], line.size / 2, line.size)
   if #line >= 4 then
-    local t = smooth(line, line.smoothness)
+    t = smooth(line, line.smoothness)
     love.graphics.circle("fill", line[#line-1], line[#line], line.size / 2, line.size)
     love.graphics.line(t)
   end
+  if dbg then
+    local minX, minY, maxX, maxY = 1280, 720, 0, 0
+    for i = 1, #t/2 do
+      local x, y = t[i*2-1], t[i*2]
+      minX = (x < minX) and x or minX
+      minY = (y < minY) and y or minY
+      maxX = (x > maxX) and x or maxX
+      maxY = (y > maxY) and y or maxY
+    end
+    love.graphics.setColor(cacheRGB[line.peerID])
+    love.graphics.setLineWidth(1)
+    love.graphics.rectangle("line", minX - line.size - 0.5, minY - line.size - 0.5, maxX - minX + line.size*2, maxY - minY + line.size*2)
+    love.graphics.setFont(gui.font[10])
+    pprint(peers_by)
+    print(line.peerID)
+    love.graphics.print(peers_by.id[line.peerID], minX - line.size, minY - line.size)
+  end
+
 end
 
 
@@ -66,6 +90,7 @@ end
 
 
 game.update = function(self, dt)
+  dbg = love.keyboard.isDown("tab")
   while true do
     local event = self.host:service(0)
     if self.connectPending and self.server:state() == "connected" then
@@ -113,9 +138,9 @@ game.draw = function(self, snap)
 
   for i, line in ipairs(buffer) do
     if line.text then
-      self:drawText(line)
+      self:drawText(line, dbg)
     else
-      self:drawLine(line)
+      self:drawLine(line, dbg)
     end
 
   end

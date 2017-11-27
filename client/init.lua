@@ -15,6 +15,12 @@ tempLines = {}
 lines = {}
 buffer = {}
 
+peers_by = {
+  nick = {},
+  id = {}
+}
+
+
 states = {}
 states.game = require "game"
 states.menu = require "menu"

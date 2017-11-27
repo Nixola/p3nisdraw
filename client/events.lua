@@ -26,6 +26,9 @@ events.start = function(event)
     end
   end
 
+  --Connected peers
+  peers_by = event.peers
+
   -- ID
   selfID = event.id
 
@@ -36,6 +39,7 @@ events.create = function(event)
 
   local line = {
     id = event.lineID,
+    peerID = event.peerID,
     size = event.size,
     startTime = event.time,
     order = event.order,
@@ -126,7 +130,9 @@ end
 
 events.connect = function(event)
 
-  if event.peerID == selfID then print("Self connect") return end
+  --if event.peerID == selfID then print("Self connect") return end
+  peers_by.id[event.peerID] = event.nick
+  peers_by.nick[event.nick] = event.peerID
   
   lines[event.peerID] = {}
 
