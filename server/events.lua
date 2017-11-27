@@ -139,6 +139,7 @@ events.connect = function(event)
   print(event)
   local peerID = event.peerID
   peers_by.nick[event.nick] = peers_by.id[peerID]
+  peers_by.obj[peers_by.id[peerID]].nick = nick
   local ev = {type = "start"}
   ev.lines = lines
   ev.id = peerID

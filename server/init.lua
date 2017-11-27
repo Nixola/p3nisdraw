@@ -10,7 +10,8 @@ inputT = {input}
 peers_by = {
   nick = {},
   ip = {},
-  id = {}
+  id = {},
+  obj = {}
 }
 
 bans = {}
@@ -60,6 +61,7 @@ while true do
       else
         peers_by.ip[ip] = event.peer
         peers_by.id[event.peer:connect_id()] = event.peer
+        peers_by.obj[event.peer] = {ip = ip, id = event.peer:connect_id()}
       end
     end
   elseif event and event.type == "receive" then
