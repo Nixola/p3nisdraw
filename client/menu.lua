@@ -8,6 +8,19 @@ local nick, addr, err, stopb
 
 local connecting = {}
 
+menu.helpString = [[
+Hi! If you're reading this, you may be wondering how to use this wonderful piece of software.
+
+First of all, connect to a server. Don't worry about choosing a fitting nickname, they're meaningless still. Once connected, you'll be able to draw on a shared canvas with whoever is connected to the same one! Use the mousewheel to change the size of your (opaque) brush, then hold and move to paint! Release when done. Holding right-click allows you to choose a colour!
+
+Pressing enter you can even send text! If a message starts with / (forward slash) it will be parsed as a command and won't be sent. There's only one command right now, which is "star". It takes two arguments (radius and number of points) and it allows you to draw a regular star on the canvas, without having to patiently paint all the lines by yourself!
+
+If you're on mobile sorry, but I'm too lazy to make a proper interface for you yet. You only get the ability to draw thin white lines.
+
+I'm planning on expanding the UI (including, but not limited to, a mobile interface), so you're free to suggest me stuff to add/fix over at https://github.com/Nixola/p3nisdraw! (No clickable link because lazy.)
+
+Enjoy!]]
+
 
 local connect = function()
 	if connecting.resolving or connecting.ip then return end
@@ -97,6 +110,16 @@ menu.draw = function(self)
 		end
 	end
 	gui:draw()
+	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.setFont(gui.font[32])
+	love.graphics.printf("Penisdraw III: Bigger than Unek's", 240, 16, 600, "left")
+	local font = gui.font[12]
+	love.graphics.setFont(font)
+	love.graphics.printf(self.helpString, 240, 64, 600, "left")
+	love.graphics.setColor(255, 255, 255, 192)
+	local _, wrap = font:getWrap(self.helpString, 600)
+	local height = font:getHeight() * #wrap
+	love.graphics.line(230, 16, 230, 64 + height + 8)
 end
 
 
