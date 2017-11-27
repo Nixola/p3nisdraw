@@ -6,7 +6,8 @@ input:close()
 input:setfd(0)
 inputT = {input}
 
-
+peers = {}
+bans = {}
 
 lines = {}
 buffer = {}
@@ -35,8 +36,19 @@ while true do
   local event = host:service(100)
   local send
   if event and event.type == "connect" then
-     send = events.connect(event.peer:connect_id())
-  
+    local ip = tostring(event.peer)
+    if not ip then
+      print("Can't figure out IP. Like hell I'm letting this through.")
+      event.peer:reset()
+    else
+      ip = ip:match("^(.-)%:%d+$")
+      if bans[ip] then
+        print("Banned IP", ip, "attempted joining")
+        event.peer:reset()
+      else
+        send = events.connect(event.peer:connect_id())
+      end
+    end
   elseif event and event.type == "receive" then
     local result
     local t = binser.d(event.data)[1]
