@@ -28,6 +28,7 @@ game.connect = function(self, nick, address, port)
 		return nil, r1
 	end
 	self.server = r1
+	self.connectPending = nick
 	return self.host
 end
 
@@ -67,6 +68,11 @@ end
 game.update = function(self, dt)
   while true do
     local event = self.host:service(0)
+    if self.connectPending and self.server:state() == "connected" then
+    	print("Attempting connection")
+    	self.server:send(binser.s{type = "connect", nick = self.connectPending})
+    	self.connectPending = false
+    end
 
     if event and event.type == "receive" then
 
@@ -121,7 +127,6 @@ game.draw = function(self, snap)
     if len >= 3 then
       local c = v.color
       local r, g, b, a = unpack(c)
-      print(r, g, b, a, unpack(v))
       love.graphics.setColor(r * 255, g * 255, b * 255, a * 64)
       love.graphics.setLineWidth(size)
       love.graphics.line(v)
@@ -182,7 +187,6 @@ game.keypressed = function(self, key, scan)
     textbox:setEnterFunc(function(self)
       if self.text:match("^/") then
         local parts = self.text:split(" ")
-        print("parts", unpack(parts))
         local cmd = parts[1]:match("^/(.-)$")
         table.remove(parts, 1)
         local i = 1
@@ -197,7 +201,6 @@ game.keypressed = function(self, key, scan)
             i = i + 1
           end
         end
-        print(unpack(parts))
         local t = {type = "finish", lineID = textID, text = ""}
         local t2 = {type = "delete", lineID = textID}
         states.game.server:send(binser.s(t))

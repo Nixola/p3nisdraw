@@ -7,7 +7,11 @@ input:close()
 input:setfd(0)
 inputT = {input}
 
-peers = {}
+peers_by = {
+  nick = {},
+  ip = {}
+}
+
 bans = {}
 
 lines = {}
@@ -33,7 +37,7 @@ while true do
     local parts = line:split(" ")
     local cmd = parts[1]
     --table.remove(parts, 1)
-    if commands(cmd) then
+    if commands[cmd] then
       commands[cmd](unpack(parts, 2))
     end
   end
@@ -43,22 +47,24 @@ while true do
   local send
   if event and event.type == "connect" then
     local ip = tostring(event.peer)
+    print("Incoming connection", ip)
     if not ip then
       print("Can't figure out IP. Like hell I'm letting this through.")
       event.peer:reset()
     else
       ip = ip:match("^(.-)%:%d+$")
       if bans[ip] then
-        print("Banned IP", ip, "attempted joining")
+        print("Banned IP attempted joining")
         event.peer:reset()
       else
-        send = events.connect(event.peer:connect_id())
+        peers_by.ip[ip] = event.peer
       end
     end
   elseif event and event.type == "receive" then
     local result
     local t = binser.d(event.data)[1]
     t.peerID = event.peer:connect_id()
+    print("Received event", t.type, "from", event.peer)
 
     if not events[t.type] then
       print("Received invalid event (" .. t.type .. "). Ignoring.")

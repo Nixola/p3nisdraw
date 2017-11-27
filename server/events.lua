@@ -135,10 +135,13 @@ events.delete = function(event)
 end
 
 
-events.connect = function(peerID) -- this is different
-  local event = {type = "start"}
-  event.lines = lines
-  event.id = peerID
+events.connect = function(event)
+  print(event)
+  local peerID = event.peerID
+  peers_by.nick[event.nick] = peerID
+  local ev = {type = "start"}
+  ev.lines = lines
+  ev.id = peerID
 
   lines[peerID] = {}
 
@@ -150,13 +153,13 @@ events.connect = function(peerID) -- this is different
   f:close()
   os.remove(filename)
 
-  event.png = png
+  ev.png = png
 
-  local connect = {type = "connect"}
+  local connect = {type = "connect", nick = event.nick}
   connect.broadcast = true
   connect.peerID = peerID
 
-  return {event, connect}
+  return {ev, connect}
 end
 
 
