@@ -16,10 +16,11 @@ events.create = function(event)
 
   event.time = time
   event.order = order
+  event.smoothness = event.smoothness or 3
 
   print("Created line", event.peerID, event.lineID)
 
-  local line = {lineID = event.lineID, size = event.size, color = event.color, peerID = event.peerID, text = event.text, event.x, event.y}
+  local line = {lineID = event.lineID, size = event.size, color = event.color, peerID = event.peerID, text = event.text, smoothness = event.smoothness, event.x, event.y}
   line.startTime = time
   line.order = order
 
@@ -52,7 +53,7 @@ events.create = function(event)
       else
         cr:move_to(t[1], t[2])
         if #line >= 4 then
-          t = smooth(line, 3)
+          t = smooth(line, event.smoothness)
         end
         for i = 2, #t / 2 do
           local x, y = t[i * 2 - 1], t[i * 2]
@@ -93,6 +94,7 @@ events.update = function(event)
   else
     line[#line + 1] = event.x
     line[#line + 1] = event.y
+    line.smoothness = event.smoothness or line.smoothness
   end
 
   event.broadcast = true

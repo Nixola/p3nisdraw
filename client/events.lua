@@ -41,6 +41,7 @@ events.create = function(event)
     order = event.order,
     color = event.color,
     text = event.text,
+    smoothness = event.smoothness,
     event.x, event.y
   }
   print("Line from", event.peerID, lines[event.peerID])
@@ -60,6 +61,7 @@ events.update = function(event)
     line.text = event.text
     line.size = event.size
     line.color = event.color
+    line.smoothness = event.smoothness
   else
     line[#line + 1] = event.x
     line[#line + 1] = event.y

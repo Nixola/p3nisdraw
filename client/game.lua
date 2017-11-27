@@ -4,6 +4,7 @@ local gui = require "gui"()
 
 local CP = require "colorPicker"
 local smooth = require "smooth"
+local smoothness = 3
 
 local nextID = 0
 local lineID = 0
@@ -42,7 +43,7 @@ game.drawLine = function(self, line)
   love.graphics.setLineWidth(line.size)
   love.graphics.circle("fill", line[1], line[2], line.size / 2, line.size)
   if #line >= 4 then
-    local t = smooth(line, 3)
+    local t = smooth(line, line.smoothness)
     love.graphics.circle("fill", line[#line-1], line[#line], line.size / 2, line.size)
     love.graphics.line(t)
   end
@@ -149,6 +150,9 @@ game.keypressed = function(self, key, scan)
   	snap()
   	local imgd = snapshot:newImageData()
   	local r = imgd:encode("png", os.time() .. ".png")
+  elseif scan == "up" or scan == "down" then
+  	smoothness = math.max(0, smoothness + (scan == "up" and 1 or -1))
+  	print("Smoothness is now", smoothness)
   end
 
   if scan == "return" and not textbox then
@@ -231,7 +235,7 @@ game.mousepressed = function(self, x, y, butt)
     lineID = nextID
     nextID = nextID + 1
     tempLine = {size = size, color = {r, g, b, a}, x, y}
-    local t = {type = "create", lineID = lineID, x = x, y = y, size = size, color = {r, g, b, a}}
+    local t = {type = "create", lineID = lineID, x = x, y = y, size = size, color = {r, g, b, a}, smoothness = smoothness}
     self.server:send(binser.s(t))
     tempLines[lineID] = tempLine
   elseif butt == 2 then
@@ -255,7 +259,7 @@ game.mousemoved = function(self, x, y, dx, dy)
   if tempLine then -- we're drawing
     tempLine[#tempLine + 1] = x
     tempLine[#tempLine + 1] = y
-    self.server:send(binser.s{type = "update", lineID = lineID, x = x, y = y})
+    self.server:send(binser.s{type = "update", lineID = lineID, x = x, y = y, smoothness = smoothness})
   end
 end
 
