@@ -12,6 +12,7 @@ local textID = 0
 local tempLine
 
 local events = require "events"
+local commands = require "commands"
 
 local colorPicker
 
@@ -89,6 +90,9 @@ game.update = function(self, dt)
   	gui:update(dt)
   	textbox:update(dt)
   end
+  if tempLine and tempLine.update then
+  	tempLine:update(dt, size, r, g, b, a)
+  end
 end
 
 
@@ -117,6 +121,7 @@ game.draw = function(self, snap)
     if len >= 3 then
       local c = v.color
       local r, g, b, a = unpack(c)
+      print(r, g, b, a, unpack(v))
       love.graphics.setColor(r * 255, g * 255, b * 255, a * 64)
       love.graphics.setLineWidth(size)
       love.graphics.line(v)
@@ -197,6 +202,17 @@ game.keypressed = function(self, key, scan)
         local t2 = {type = "delete", lineID = textID}
         states.game.server:send(binser.s(t))
         states.game.server:send(binser.s(t2))
+        if commands[cmd] then
+        	local res = commands[cmd](unpack(parts))
+        	if not tempLine then
+        		lineID = nextID
+        		tempLine = res
+        		tempLine.lineID = lineID
+        		tempLine.color = {r, g, b, a}
+        		nextID = nextID + 1
+        		tempLines[lineID] = tempLine
+        	end
+        end
       else
         self.size = size
         self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r * 255, g * 255, b * 255, a * 255
@@ -231,13 +247,18 @@ end
 
 
 game.mousepressed = function(self, x, y, butt)
-  if butt == 1 then -- create a line!
-    lineID = nextID
-    nextID = nextID + 1
-    tempLine = {size = size, color = {r, g, b, a}, x, y}
-    local t = {type = "create", lineID = lineID, x = x, y = y, size = size, color = {r, g, b, a}, smoothness = smoothness}
-    self.server:send(binser.s(t))
-    tempLines[lineID] = tempLine
+  if butt == 1 then
+  	if not tempLine then-- create a line!
+	    lineID = nextID
+	    nextID = nextID + 1
+	    tempLine = {size = size, color = {r, g, b, a}, x, y}
+	    local t = {type = "create", lineID = lineID, x = x, y = y, size = size, color = {r, g, b, a}, smoothness = smoothness}
+	    self.server:send(binser.s(t))
+	    tempLines[lineID] = tempLine
+	  else
+	  	tempLine:send(x, y)
+	  	tempLine = nil
+	  end
   elseif butt == 2 then
     CP:create(x - 192, y - 192, 192)
     colorPicker = CP
@@ -257,9 +278,13 @@ end
 
 game.mousemoved = function(self, x, y, dx, dy)
   if tempLine then -- we're drawing
-    tempLine[#tempLine + 1] = x
-    tempLine[#tempLine + 1] = y
-    self.server:send(binser.s{type = "update", lineID = lineID, x = x, y = y, smoothness = smoothness})
+  	if tempLine.mousemoved then
+  		tempLine:mousemoved(x, y, dx, dy)
+  	else
+    	tempLine[#tempLine + 1] = x
+    	tempLine[#tempLine + 1] = y
+    	self.server:send(binser.s{type = "update", lineID = lineID, x = x, y = y, smoothness = smoothness})
+    end
   end
 end
 
@@ -270,8 +295,12 @@ end
 
 game.mousereleased = function(self, x, y, butt)
   if butt == 1 and tempLine then
+  	if tempLine.send then
+  		tempLine:send(x, y)
+  	else
+  		self.server:send(binser.s{type = "finish", lineID = lineID, x = x, y = y})
+  	end
     tempLine = nil
-    self.server:send(binser.s{type = "finish", lineID = lineID, x = x, y = y})
   elseif butt == 2 then
     r, g, b = unpack(colorPicker.nc or colorPicker.sc)
     r = r / 255
