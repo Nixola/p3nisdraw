@@ -16,9 +16,9 @@ events.create = function(event)
 
   event.time = time
   event.order = order
-  event.smoothness = event.smoothness or 3
+  event.smoothness = event.smoothness or 0
 
-  print("Created line", event.peerID, event.lineID)
+  print("Created line", event.peerID, event.lineID, "smoothness", event.smoothness)
 
   local line = {lineID = event.lineID, size = event.size, color = event.color, peerID = event.peerID, text = event.text, smoothness = event.smoothness, event.x, event.y}
   line.startTime = time
@@ -39,7 +39,7 @@ events.create = function(event)
   while true do
     local line = buffer[i]
     if not line then break end
-    if line.endTime and (time - line.endTime > (config.endTime or 120)) then
+    if line.endTime and (time - line.endTime > (tonumber(config.endTime) or 120)) then
       local t = line
       returns[#returns + 1] = {type = "squash", lineID = line.lineID, peerID = line.peerID, broadcast = true}
       cr:new_path()
@@ -53,7 +53,7 @@ events.create = function(event)
       else
         cr:move_to(t[1], t[2])
         if #line >= 4 then
-          t = smooth(line, event.smoothness)
+          t = smooth(line, line.smoothness)
         end
         for i = 2, #t / 2 do
           local x, y = t[i * 2 - 1], t[i * 2]
