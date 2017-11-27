@@ -1,4 +1,5 @@
 local events = require "events"
+local commands = require "commands"
 
 local socket = require "socket" --I'm gonna need LuaSocket for non-blocking keyboard input. ew.
 local input  = socket.tcp()
@@ -29,7 +30,12 @@ while true do
   local readable = socket.select(inputT, nil, 0)
   if readable[input] then
     local line = io.read("*l")
-    print("Read line", line)
+    local parts = line:split(" ")
+    local cmd = parts[1]
+    --table.remove(parts, 1)
+    if commands(cmd) then
+      commands[cmd](unpack(parts, 2))
+    end
   end
 
   --then network input
