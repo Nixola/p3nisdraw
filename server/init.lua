@@ -10,9 +10,10 @@ inputT = {input}
 peers_by = {
   nick = {},
   ip = {},
-  id = {},
-  obj = {}
+  id = {}
 }
+
+local peer_id = {}
 
 bans = {}
 
@@ -59,9 +60,12 @@ while true do
         print("Banned IP attempted joining")
         event.peer:reset()
       else
-        peers_by.ip[ip] = event.peer
-        peers_by.id[event.peer:connect_id()] = event.peer
-        peers_by.obj[event.peer] = {ip = ip, id = event.peer:connect_id()}
+        local id = event.peer:connect_id()
+        local p = {id = id, ip = ip, obj = event.peer}
+        peers_by.ip[ip] = p
+        peers_by.id[id] = p
+        peer_id[event.peer] = id
+        print("Connecting", id)
       end
     end
   elseif event and event.type == "receive" then
@@ -80,7 +84,14 @@ while true do
       print("Error in event", event.type, send)
       send = false
     end
-
+  elseif event and event.type == "disconnect" then
+    local peerID = peer_id[event.peer]
+    peer_id[event.peer] = nil
+    local nick = peers_by.id[peerID].nick
+    peers_by.nick[nick] = nil
+    peers_by.id[peerID].nick = ""
+    local ev = {type = "disconnect", peerID = peerID, broadcast = true}
+    send = {ev}
   end
 
   if send then

@@ -88,3 +88,9 @@ love.wheelmoved = function(wx, wy)
     state:wheelmoved(wx, wy)
   end
 end
+
+love.quit = function()
+  if state.quit then
+    state:quit()
+  end
+end

@@ -68,9 +68,11 @@ game.drawLine = function(self, line, dbg)
     love.graphics.setLineWidth(1)
     love.graphics.rectangle("line", minX - line.size - 0.5, minY - line.size - 0.5, maxX - minX + line.size*2, maxY - minY + line.size*2)
     love.graphics.setFont(gui.font[10])
-    pprint(peers_by)
-    print(line.peerID)
-    love.graphics.print(peers_by.id[line.peerID], minX - line.size, minY - line.size)
+    local nick = peers_by.id[line.peerID].nick
+    if nick == "" then
+    	nick = "ID:" .. line.peerID
+    end
+    love.graphics.print(nick, math.floor(minX - line.size), math.floor(minY - line.size))
   end
 
 end
@@ -337,6 +339,11 @@ game.mousereleased = function(self, x, y, butt)
     colorPicker = nil
   end
 
+end
+
+game.quit = function(self)
+	self.server:disconnect()
+	self.host:flush()
 end
 
 return game

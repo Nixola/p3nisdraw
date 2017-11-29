@@ -136,26 +136,29 @@ end
 
 
 events.connect = function(event)
-  print(event)
   local nick = event.nick
+  if nick == "" then
+    nick = string.format("Guest - %08x", math.random(0x10000000, 0xffffffff))
+  end
   local onick = nick
   local i = 1
-  while peers_by.nick[nick] do --a user with the same nick already logged in
+  while peers_by.nick[nick] do --a user with the same nick is already logged in
     nick = onick .." - " .. i
     i = i + 1
   end
   local peerID = event.peerID
   local peer = peers_by.id[peerID]
   peers_by.nick[nick] = peer
-  peers_by.obj[peer].nick = nick
+  peer.nick = nick
   local ev = {type = "start"}
   ev.lines = lines
   ev.id = peerID
 
-  ev.peers = {nick = {}, id = {}}
-  for obj, info in pairs(peers_by.obj) do
-    ev.peers.nick[info.nick] = info.id
-    ev.peers.id[info.id] = info.nick
+  ev.peers = {}
+  local n = 1
+  for id, peer in pairs(peers_by.id) do
+    ev.peers[n] = {nick = peer.nick, id = peer.id}
+    n = n + 1
   end
 
   pprint(ev.peers)

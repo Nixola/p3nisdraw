@@ -11,10 +11,11 @@ commands.ban = function(by, ip)
 		return
 	end
 	local peer = peers_by[by][ip]
-	local ip = peers_by.obj[peer].ip
+
+	local ip = peer.ip
 	print("Banned ip", ip)
 	bans[ip] = true
-	peer:reset()
+	peer.obj:reset()
 
 end
 

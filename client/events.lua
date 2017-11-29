@@ -27,7 +27,11 @@ events.start = function(event)
   end
 
   --Connected peers
-  peers_by = event.peers
+  for _, p in ipairs(event.peers) do
+  	pprint(p)
+  	peers_by.id[p.id] = p
+  	peers_by.nick[p.nick] = p
+  end
 
   -- ID
   selfID = event.id
@@ -131,12 +135,22 @@ end
 events.connect = function(event)
 
   --if event.peerID == selfID then print("Self connect") return end
-  peers_by.id[event.peerID] = event.nick
-  peers_by.nick[event.nick] = event.peerID
+  local p = {nick = event.nick, id = event.peerID}
+  peers_by.id[event.peerID] = p
+  peers_by.nick[event.nick] = p
   
   lines[event.peerID] = {}
 
   print("Someone connected!", event.peerID, lines[event.peerID])
+
+end
+
+
+events.disconnect = function(event)
+
+	local p = peers_by.id[event.peerID]
+	peers_by.nick[p.nick] = nil
+	p.nick = ""
 
 end
 
