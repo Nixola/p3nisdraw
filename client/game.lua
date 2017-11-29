@@ -92,7 +92,7 @@ end
 
 
 game.update = function(self, dt)
-  dbg = love.keyboard.isDown("tab")
+  dbg = love.keyboard.isDown("tab") and config.debugDraw
   while true do
     local event = self.host:service(0)
     if self.connectPending and self.server:state() == "connected" then
