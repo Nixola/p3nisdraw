@@ -150,6 +150,8 @@ events.connect = function(event)
   local peer = peers_by.id[peerID]
   peers_by.nick[nick] = peer
   peer.nick = nick
+  local ping = peer.obj:round_trip_time()
+  peer.latency = ping
   local ev = {type = "start"}
   ev.lines = lines
   ev.id = peerID
@@ -157,11 +159,9 @@ events.connect = function(event)
   ev.peers = {}
   local n = 1
   for id, peer in pairs(peers_by.id) do
-    ev.peers[n] = {nick = peer.nick, id = peer.id}
+    ev.peers[n] = {nick = peer.nick, id = peer.id, latency = peer.latency}
     n = n + 1
   end
-
-  pprint(ev.peers)
 
   lines[peerID] = {}
 
@@ -175,7 +175,8 @@ events.connect = function(event)
 
   ev.png = png
 
-  local connect = {type = "connect", nick = nick}
+  local connect = {type = "connect", nick = nick, latency = ping}
+  print("Someone connected", ping)
   connect.broadcast = true
   connect.peerID = peerID
 

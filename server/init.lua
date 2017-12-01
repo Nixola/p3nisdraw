@@ -23,6 +23,8 @@ buffer = {}
 config.address = config.address or "0.0.0.0"
 config.port    = config.port    or 42069
 
+local time, otime = os.time(), os.time()
+
 local host = enet.host_create(config.address .. ":" .. config.port)
 
 local relay = function(host, data, peerID)
@@ -33,6 +35,7 @@ end
 
 
 while true do
+  time = os.time()
   --handle keyboard input, if any
   local readable = socket.select(inputT, nil, 0)
   if readable[input] then
@@ -61,7 +64,7 @@ while true do
         event.peer:reset()
       else
         local id = event.peer:connect_id()
-        local p = {id = id, ip = ip, obj = event.peer}
+        local p = {id = id, ip = ip, obj = event.peer, latency = "n/a"}
         peers_by.ip[ip] = p
         peers_by.id[id] = p
         peer_id[event.peer] = id
@@ -94,6 +97,23 @@ while true do
     send = {ev}
   end
 
+  if time ~= otime then --broadcast a latency update
+    local t = {type = "latency", broadcast = true, data = {}}
+    for id, p in pairs(peers_by.id) do
+      if p.nick ~= "" then --the peer is online
+        local ping = p.obj:round_trip_time()
+        t.data[id] = ping
+        p.latency = ping
+      end
+    end
+    if send then --append the event
+      send[#send+1] = t
+    else -- need sendin'
+      send = {t}
+    end
+  end
+
+
   if send then
     for i, ev in ipairs(send) do
       print("Sending event of type", "." .. ev.type .. ".")
@@ -105,4 +125,5 @@ while true do
     end
   end
 
+  otime = time
 end
