@@ -11,7 +11,7 @@ local connecting = {}
 menu.helpString = [[
 Hi! If you're reading this, you may be wondering how to use this wonderful piece of software.
 
-First of all, connect to a server. Don't worry about choosing a fitting nickname, they're meaningless still. Once connected, you'll be able to draw on a shared canvas with whoever is connected to the same one! Use the mousewheel to change the size of your (opaque) brush, then hold and move to paint! Release when done. Holding right-click allows you to choose a colour!
+First of all, connect to a server. Choose a nickname, type in the address and connect. Once connected, you'll be able to draw on a shared canvas with whoever is connected to the same one! Use the mousewheel to change the size of your (opaque) brush, then hold and move to paint! Release when done. Holding right-click allows you to choose a colour!
 
 Pressing enter you can even send text! If a message starts with / (forward slash) it will be parsed as a command and won't be sent. There's only one command right now, which is "star". It takes two arguments (radius and number of points) and it allows you to draw a regular star on the canvas, without having to patiently paint all the lines by yourself!
 
