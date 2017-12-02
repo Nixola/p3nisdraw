@@ -21,3 +21,10 @@
 
 * Reduce unnecessary data exchange:
 * * Text objects should only send an update when moved and/or edited
+
+* Add mobile support:
+* * Add a proper UI, make it usable on mobile \(call setTextInput\)
+
+* Graphics tablets support:
+* * This is gonna be a bitch.
+* * Use Wintab on Windows, native cocoa input events on MacOS, who the f\*ck knows on Linux.
