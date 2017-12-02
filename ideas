@@ -1,0 +1,3 @@
+Make a function with a line and a brush as arguments;  
+make it smooth the line and lerp along it, generating points where the brush should be drawn (according to the brush' own settings)  
+It should then return the list, which the backend then uses to add sprites to a batch or blit stuff onto a cairo surface.
