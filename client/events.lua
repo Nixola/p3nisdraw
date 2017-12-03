@@ -5,6 +5,7 @@ local buffer = buffer
 local tempLines = tempLines
 
 local smooth = require "smooth"
+local brush = require "brush"
 
 
 events.start = function(event)
@@ -49,8 +50,10 @@ events.create = function(event)
     color = event.color,
     text = event.text,
     smoothness = event.smoothness,
+    brush = brushes[event.brush],
     event.x, event.y
   }
+  --line.batch = love.graphics.newSpriteBatch(line.brush.png)
   print("Line from", event.peerID, lines[event.peerID])
   lines[event.peerID][event.lineID] = line
   buffer[#buffer + 1] = line
@@ -72,6 +75,15 @@ events.update = function(event)
   else
     line[#line + 1] = event.x
     line[#line + 1] = event.y
+    local t = smooth(line, line.smoothness)
+    local b = line.brush:points(t)
+    if line.batch then
+      line.batch:clear()
+    end
+    line.batch = love.graphics.newSpriteBatch(line.brush.img, #b/2, "static")
+    for i = 1, #b/2 do
+      line.batch:add(b[i*2-1], b[i*2])
+    end
   end
 
 end

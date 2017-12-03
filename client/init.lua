@@ -15,6 +15,8 @@ tempLines = {}
 lines = {}
 buffer = {}
 
+brushes = {}
+
 peers_by = {
   nick = {},
   id = {}

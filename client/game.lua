@@ -4,6 +4,7 @@ local gui = require "gui"()
 
 local CP = require "colorPicker"
 local smooth = require "smooth"
+local brush = require "brush"
 local smoothness = 3
 
 local nextID = 0
@@ -34,6 +35,8 @@ game.connect = function(self, nick, address, port)
 	end
 	self.server = r1
 	self.connectPending = nick
+  brushes = {} -- load default brushes
+  
 	return self.host
 end
 
@@ -52,8 +55,9 @@ game.drawLine = function(self, line, dbg)
   love.graphics.circle("fill", line[1], line[2], line.size / 2, line.size)
   if #line >= 4 then
     t = smooth(line, line.smoothness)
-    love.graphics.circle("fill", line[#line-1], line[#line], line.size / 2, line.size)
-    love.graphics.line(t)
+    --love.graphics.circle("fill", line[#line-1], line[#line], line.size / 2, line.size)
+    --love.graphics.line(t)
+    love.graphics.draw(line.batch)
   end
   if dbg then
     local minX, minY, maxX, maxY = 1280, 720, 0, 0

@@ -1,3 +1,9 @@
-Make a function with a line and a brush as arguments;  
-make it smooth the line and lerp along it, generating points where the brush should be drawn (according to the brush' own settings)  
-It should then return the list, which the backend then uses to add sprites to a batch or blit stuff onto a cairo surface.
+Make game.lua load brush data, create an img out of the png base64, have it send to the server.
+have the server get the brush data, render the base64png somehow (not looking forward to that);
+try and obtain the raw data from the buffer, use it as a string to index a table. if it already
+exists, send the old name and the new name to the client who sent it; if it doesn't, broadcast 
+a new brush with png64 and name.
+
+Handle lines' spritebatches better: store maxLength, if not enough clear the batch and create
+another with double the size, updating maxLength accordingly. on finish, recreate the batch
+using the exact number of points because we can.
