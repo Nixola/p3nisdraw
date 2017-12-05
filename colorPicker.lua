@@ -200,113 +200,111 @@ end
 
 
 function cp:update()
-	if  love.mouse.isDown(2) then
-		local x, y = love.mouse.getPosition()
-		local len = math.getDistance(x,y,self.cx,self.cy)
-		if len>=0.8*self.size then
+	local x, y = love.mouse.getPosition()
+	local len = math.getDistance(x,y,self.cx,self.cy)
+	if len>=0.8*self.size then
+		self.ringDeg=math.deg(math.getRot(x,y,self.cx,self.cy))
+		if len>self.size then 
+			self.hx,self.hy=math.axisRot(0,1*self.size,math.rad(self.ringDeg))
+			self.hx=self.hx+self.x+self.size
+			self.hy=self.hy+self.y+self.size
+		else
+			self.hx=x
+			self.hy=y
+		end
+		
+		self.sx,self.sy=math.axisRot(0,self.oLen,math.rad(self.ringDeg+self.oDeg))
+		self.sx=self.sx+self.x+self.size
+		self.sy=self.sy+self.y+self.size
+		local r,g,b,a=self:getColor(self.canvas2,self.sx,self.sy)
+		self.sc={r,g,b}
+		--self.oDeg=0
+		self.ox,self.oy=math.axisRot(0,0.65*self.size,math.rad(self.ringDeg))
+		self.ox=self.ox+self.x+self.size
+		self.oy=self.oy+self.y+self.size
+		self.nc = nil
+	elseif len >= 0.7*self.size then
+
+		local ringRad = math.rad(self.ringDeg)
+		local a = math.getRot(x, y, self.cx, self.cy) - ringRad
+		a = a / (math.pi * 2) % 1
+
+		if a >= 5/6 or a < 1/6 then
+			--full
+			self.nc = {self:HSVtoRGB(self.ringDeg, 1, 255)}
+		elseif a >= 1/6 and a < 1/2 then
+			ringRad = ringRad + 2/3 * math.pi
+			self.nc = {255, 255, 255}
+			--white I guess
+		elseif a >= 1/2 and a < 5/6 then
+			ringRad = ringRad + 4/3 * math.pi
+			self.nc = {0, 0, 0}
+			--black I guess
+		end
+
+		--self.sx, self.sy = -math.sin(ringRad) * self.size * 0.65 + self.cx, math.cos(ringRad) * self.size * 0.65 + self.cy
+
+	elseif len<0.7*self.size then
+		local r,g,b,a=self:getColor(self.canvas2,x,y)
+		if a~=0 then
+			self.sx=x
+			self.sy=y
+			self.sc={r,g,b}
+			self.oDeg=math.deg(math.getRot(x,y,self.cx,self.cy))-self.ringDeg
+			self.oLen=len
+		else
+			--[[
 			self.ringDeg=math.deg(math.getRot(x,y,self.cx,self.cy))
-			if len>self.size then 
-				self.hx,self.hy=math.axisRot(0,1*self.size,math.rad(self.ringDeg))
-				self.hx=self.hx+self.x+self.size
-				self.hy=self.hy+self.y+self.size
-			else
-				self.hx=x
-				self.hy=y
-			end
-			
+			local diff=math.deg(math.getRot(self.ox,self.oy,self.cx,self.cy))-math.deg(math.getRot(x,y,self.cx,self.cy))
+			self.ringDeg=self.ringDeg-diff
+			self.hx,self.hy=math.axisRot(0,0.75*self.size,math.rad(self.ringDeg))
+			self.hx=self.hx+self.x+self.size
+			self.hy=self.hy+self.y+self.size
 			self.sx,self.sy=math.axisRot(0,self.oLen,math.rad(self.ringDeg+self.oDeg))
 			self.sx=self.sx+self.x+self.size
 			self.sy=self.sy+self.y+self.size
 			local r,g,b,a=self:getColor(self.canvas2,self.sx,self.sy)
-			self.sc={r,g,b}
-			--self.oDeg=0
-			self.ox,self.oy=math.axisRot(0,0.65*self.size,math.rad(self.ringDeg))
-			self.ox=self.ox+self.x+self.size
-			self.oy=self.oy+self.y+self.size
-			self.nc = nil
-		elseif len >= 0.7*self.size then
-
+			if a~=0 then
+				self.sc={r,g,b}
+			end
+			--]]
 			local ringRad = math.rad(self.ringDeg)
 			local a = math.getRot(x, y, self.cx, self.cy) - ringRad
 			a = a / (math.pi * 2) % 1
-
-			if a >= 5/6 or a < 1/6 then
-				--full
-				self.nc = {self:HSVtoRGB(self.ringDeg, 1, 255)}
-			elseif a >= 1/6 and a < 1/2 then
-				ringRad = ringRad + 2/3 * math.pi
-				self.nc = {255, 255, 255}
-				--white I guess
-			elseif a >= 1/2 and a < 5/6 then
-				ringRad = ringRad + 4/3 * math.pi
-				self.nc = {0, 0, 0}
-				--black I guess
+			local r, g, b
+			local t
+			if a >= 0 and a < 1/3 then -- between full and white; opposite to black
+				t = a*3
+				r, g, b = self:HSVtoRGB(self.ringDeg, 1 - t, 255)
+			elseif a >= 1/3 and a < 2/3 then -- between white and black; opposite to full
+				ringRad = ringRad + 2/3*math.pi
+				t = (a - 1/3) * 3
+				r, g, b = self:HSVtoRGB(self.ringDeg, 0, (1-t) * 255)
+			elseif a >= 2/3 and a < 1 then -- between black and full; opposite to white
+				ringRad = ringRad + 4/3*math.pi
+				t = (a - 2/3) * 3
+				r, g, b = self:HSVtoRGB(self.ringDeg, 1, t * 255)
 			end
 
-			--self.sx, self.sy = -math.sin(ringRad) * self.size * 0.65 + self.cx, math.cos(ringRad) * self.size * 0.65 + self.cy
+			local x1, y1 = -math.sin(ringRad) * self.size * 0.65 + self.cx, math.cos(ringRad) * self.size * 0.65 + self.cy
+			local x2, y2 = -math.sin(ringRad + 2/3*math.pi) * self.size * 0.65 + self.cx, math.cos(ringRad + 2/3*math.pi) * self.size * 0.65 + self.cy
+			--self.sx, self.sy = x2 * t + x1 * (1 - t), y2 * t + y1 * (1-t)
+			local m1 = (y2 - y1) / (x2 - x1)
+			local q1 = y1 - x1*m1
 
-		elseif len<0.7*self.size then
-			local r,g,b,a=self:getColor(self.canvas2,x,y)
-			if a~=0 then
-				self.sx=x
-				self.sy=y
-				self.sc={r,g,b}
-				self.oDeg=math.deg(math.getRot(x,y,self.cx,self.cy))-self.ringDeg
-				self.oLen=len
-			else
-				--[[
-				self.ringDeg=math.deg(math.getRot(x,y,self.cx,self.cy))
-				local diff=math.deg(math.getRot(self.ox,self.oy,self.cx,self.cy))-math.deg(math.getRot(x,y,self.cx,self.cy))
-				self.ringDeg=self.ringDeg-diff
-				self.hx,self.hy=math.axisRot(0,0.75*self.size,math.rad(self.ringDeg))
-				self.hx=self.hx+self.x+self.size
-				self.hy=self.hy+self.y+self.size
-				self.sx,self.sy=math.axisRot(0,self.oLen,math.rad(self.ringDeg+self.oDeg))
-				self.sx=self.sx+self.x+self.size
-				self.sy=self.sy+self.y+self.size
-				local r,g,b,a=self:getColor(self.canvas2,self.sx,self.sy)
-				if a~=0 then
-					self.sc={r,g,b}
-				end
-				--]]
-				local ringRad = math.rad(self.ringDeg)
-				local a = math.getRot(x, y, self.cx, self.cy) - ringRad
-				a = a / (math.pi * 2) % 1
-				local r, g, b
-				local t
-				if a >= 0 and a < 1/3 then -- between full and white; opposite to black
-					t = a*3
-					r, g, b = self:HSVtoRGB(self.ringDeg, 1 - t, 255)
-				elseif a >= 1/3 and a < 2/3 then -- between white and black; opposite to full
-					ringRad = ringRad + 2/3*math.pi
-					t = (a - 1/3) * 3
-					r, g, b = self:HSVtoRGB(self.ringDeg, 0, (1-t) * 255)
-				elseif a >= 2/3 and a < 1 then -- between black and full; opposite to white
-					ringRad = ringRad + 4/3*math.pi
-					t = (a - 2/3) * 3
-					r, g, b = self:HSVtoRGB(self.ringDeg, 1, t * 255)
-				end
+			local m2 = (self.cy - y) / (self.cx - x)
+			local q2 = y - x*m2
 
-				local x1, y1 = -math.sin(ringRad) * self.size * 0.65 + self.cx, math.cos(ringRad) * self.size * 0.65 + self.cy
-				local x2, y2 = -math.sin(ringRad + 2/3*math.pi) * self.size * 0.65 + self.cx, math.cos(ringRad + 2/3*math.pi) * self.size * 0.65 + self.cy
-				--self.sx, self.sy = x2 * t + x1 * (1 - t), y2 * t + y1 * (1-t)
-				local m1 = (y2 - y1) / (x2 - x1)
-				local q1 = y1 - x1*m1
+			self.sx = (q2 - q1) / (m1 - m2)
+			self.sy = m1 * self.sx + q1
 
-				local m2 = (self.cy - y) / (self.cx - x)
-				local q2 = y - x*m2
-
-				self.sx = (q2 - q1) / (m1 - m2)
-				self.sy = m1 * self.sx + q1
-
-				self.sc = {r, g, b}
-			end
-			self.ox,self.oy=x,y
-			self.nc = nil
-			
+			self.sc = {r, g, b}
 		end
-		cp:tri()
+		self.ox,self.oy=x,y
+		self.nc = nil
+		
 	end
+	cp:tri()
 end
 
 function cp:getOpColor()

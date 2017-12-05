@@ -338,8 +338,16 @@ game.mousepressed = function(self, x, y, butt)
 	  	tempLine = nil
 	  end
   elseif butt == 2 then
-    CP:create(x - 192, y - 192, 192)
-    colorPicker = CP
+    if not colorPicker then
+      CP:create(x - 192, y - 192, 192)
+      colorPicker = CP
+    else
+      r, g, b = unpack(colorPicker.nc or colorPicker.sc)
+      r = r / 255
+      g = g / 255
+      b = b / 255
+      colorPicker = nil
+    end
   end
 
   if textbox then
@@ -379,12 +387,6 @@ game.mousereleased = function(self, x, y, butt)
   		self.server:send(binser.s{type = "finish", lineID = lineID, x = x, y = y})
   	end
     tempLine = nil
-  elseif butt == 2 then
-    r, g, b = unpack(colorPicker.nc or colorPicker.sc)
-    r = r / 255
-    g = g / 255
-    b = b / 255
-    colorPicker = nil
   end
 
 end
