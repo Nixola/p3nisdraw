@@ -5,6 +5,7 @@ local surface = cairo.ImageSurface.create("ARGB32", 1280, 720)
 local cr = cairo.Context.create(surface)
 cr:select_font_face("Vera")
 local smooth = require "smooth"
+local base64 = require "base64"
 
 -- event handlers return a table of events. Every event in the table contains a boolean, "broadcast",
 -- which specifies whether the returned event should be broadcast to everyone or not. If not, it's just
@@ -162,6 +163,14 @@ events.connect = function(event)
     ev.peers[n] = {nick = peer.nick, id = peer.id, latency = peer.latency}
     n = n + 1
   end
+
+  for i, b in ipairs(event.brushes) do
+    local png = base64.decode(b.png)
+    if #png > 16384 then -- max size exceeded
+      print()
+    end
+  end
+
 
   lines[peerID] = {}
 

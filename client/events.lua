@@ -51,9 +51,10 @@ events.create = function(event)
     text = event.text,
     smoothness = event.smoothness,
     brush = brushes[event.brush],
+    len = 100,
     event.x, event.y
   }
-  --line.batch = love.graphics.newSpriteBatch(line.brush.png)
+  line.batch = love.graphics.newSpriteBatch(line.brush.img, line.len)
   print("Line from", event.peerID, lines[event.peerID])
   lines[event.peerID][event.lineID] = line
   buffer[#buffer + 1] = line
@@ -80,7 +81,14 @@ events.update = function(event)
     if line.batch then
       line.batch:clear()
     end
-    line.batch = love.graphics.newSpriteBatch(line.brush.img, #b/2, "static")
+    if #b/2 > line.len then
+    	while #b/2 > line.len do
+    		line.len = line.len * 2
+    	end
+    	line.batch = love.graphics.newSpriteBatch(line.brush.img, line.len, "static")
+    else
+    	line.batch:clear()
+    end
     for i = 1, #b/2 do
       line.batch:add(b[i*2-1], b[i*2])
     end

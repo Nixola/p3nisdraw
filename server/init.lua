@@ -20,6 +20,9 @@ bans = {}
 lines = {}
 buffer = {}
 
+brushes = {}
+brushes_cache = {}
+
 config.address = config.address or "0.0.0.0"
 config.port    = config.port    or 42069
 

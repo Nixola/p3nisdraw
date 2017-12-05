@@ -35,7 +35,6 @@ game.connect = function(self, nick, address, port)
 	end
 	self.server = r1
 	self.connectPending = nick
-  brushes = {} -- load default brushes
   
 	return self.host
 end
@@ -126,7 +125,21 @@ game.update = function(self, dt)
     local event = self.host:service(0)
     if self.connectPending and self.server:state() == "connected" then
     	print("Attempting connection")
-    	self.server:send(binser.s{type = "connect", nick = self.connectPending})
+    	local brushes = {} -- load default brushes
+		  for _, filename in love.filesystem.getDirectoryItems("brushes") do
+		  	local f, e = love.filesystem.load("brushes/" .. filename)
+		  	if not f then
+		  		print("Error loading brush file", f, '\n', e)
+		  	else
+		  		local result, b = pcall(f)
+		  		if not result then
+		  			print("Error running brush file", f, '\n', e)
+		  		else
+		  			brushes[#brushes + 1] = b
+		  		end
+		  	end
+		  end
+    	self.server:send(binser.s{type = "connect", nick = self.connectPending, brushes = brushes})
     	self.connectPending = false
     end
 
