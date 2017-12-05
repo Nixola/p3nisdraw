@@ -7,3 +7,22 @@ a new brush with png64 and name.
 Handle lines' spritebatches better: store maxLength, if not enough clear the batch and create
 another with double the size, updating maxLength accordingly. on finish, recreate the batch
 using the exact number of points because we can.
+
+
+Now that that's done, I should note down something about the upcoming new exciting addition to
+the gui lib, lists. They can be provided an array of items (an item being a simple table:
+{icon = img, text = string}) in two ways: list:setItems(arr), which overwrites the internal list
+with the provided one, and list:addItems(arr[, i]) which appends the provided array to the
+internal list, by default at the bottom (the optional i argument can specify a place where the
+new items can be inserted). The type is either list (which only has vertical scrolling) or grid
+(which can have either, but defaults to vertical). A grid will render each item in squares,
+fitting as much as possible with the provided size without making them overflow in the direction
+without scrolling; the image will be centered-top aligned, the text centered-bottom aligned.
+A list will render each item in rectangles, with the width being the width of the list itself
+and the height being the specified one; images are gonna be left-center aligned and text is gonna
+be right-center aligned. A List object also implicitly creates a slider object with the same
+direction as its scrolling direction; it's gonna be drawn to the side IF the List objects overflow.
+The size of the slider is determined by the amount of overlow (height / (overflow + height)), its
+position is bound to the list position (changing one changes the other). Mousewheel should scroll
+both of them, too. Clicking on an item calls a callback (which has to be provided), which will
+receive the position of the item in the list as argument.

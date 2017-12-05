@@ -2,23 +2,17 @@ local utf8 = require "utf8"
 local UTF8 = require "UTF8"
 
 local clamp = function(min, X, max)
-
         if X < min then return max end
         if X > max then return max end
         return X
-		
 end
 
 local round = function(x)
-
 	return math.floor(x+.5)
-	
 end
 
 local dist = function(x1, y1, x2, y2)
-
 	return math.sqrt(((x1-x2)^2)+(y1-y2)^2)
-	
 end
 
 local setLine = function(size, style)
@@ -56,9 +50,10 @@ return function()
 		self.__textLines = {}
 		self.__sliders2d = {}
 		self.__radiobuttons = {}
-		self.__drawables = {'checkboxes', 'labels', 'buttons', 'sliders', 'textLines', 'sliders2d'}
-		self.__clickables = {'checkboxes', 'buttons', 'textLines', 'sliders', 'sliders2d'}
-		self.__updateables = {'sliders', 'buttons', 'sliders2d'}
+		self.__lists = {}
+		self.__drawables = {'checkboxes', 'labels', 'buttons', 'sliders', 'textLines', 'sliders2d', 'lists'}
+		self.__clickables = {'checkboxes', 'buttons', 'textLines', 'sliders', 'sliders2d', 'lists'}
+		self.__updateables = {'sliders', 'buttons', 'sliders2d', 'lists'}
 		self.__typeables = {'textLines'}
 		
 		love.keyboard.setKeyRepeat(0.25, 0.025)
@@ -108,87 +103,63 @@ return function()
 	--Set methods
 
 	gui.label.setX = function(self, x)
-
 		self.x = x
-		
 	end
 
 
 	gui.label.setY = function(self, y)
-
 		self.y = y
-		
 	end
 
 
 	gui.label.setPosition = function(self, x, y)
-
 		self.x, self.y = x, y
-		
 	end
 
 
 	gui.label.setColor = function(self, c)
-
 		self.color = c
-		
 	end
 
 
 	gui.label.setLabel = function(self, s)
-
 		self.label = s
-		
 	end
 
 
 	gui.label.setSize = function(self, s)
-
 		self.size = s
-		
 	end
 
 	--Get methods
-
 	gui.label.getX = function(self)
-
 		return self.x
-		
 	end
 
 
 	gui.label.getY = function(self)
-
 		return self.y
-		
 	end
 
 
 	gui.label.getPosition = function(self)
-
 		return self.x, self.y
-		
 	end
 
 
 	gui.label.getColor = function(self)
-
 		return self.color
 
 	end
 
 
 	gui.label.getLabel = function(self)
-
 		return self.label
-		
 	end
 
 
 	gui.label.getSize = function(self)
-
 		return self.size
-		
 	end
 
 	--#####--#---#--#####--#####--#--#--####---#####--#----#--#####--#####--
@@ -203,192 +174,134 @@ return function()
 
 
 	gui.checkbox.clicked = function(self, b)
-
 		if b == 1 then
-		
 			self.value = not self.value
-			
 		end
-		
 	end
 
 
 	gui.checkbox.draw = function(self)
-
 		love.graphics.setColor(self.color.border)
-		
 		love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
-		
 		if self.value then
-		
 			love.graphics.setColor(self.color.check)
-			
 			love.graphics.rectangle('fill', self.x+self.padding, self.y+self.padding, self.width-self.padding*2, self.height-self.padding*2)
-			
 		end
 		
 		love.graphics.setColor(self.color.label)
-		
 		love.graphics.setFont(gui.font[self.size])
-		
 		love.graphics.print(self.label, self.x+self.width+self.padding, self.y+self.padding)
-		
 	end
 
 	--Set Methods
 
 	gui.checkbox.setX = function(self, x)
-
 		self.x = x
-		
 	end
 
 
 	gui.checkbox.setY = function(self, y)
-
 		self.y = y
-		
 	end
 
 
 	gui.checkbox.setPosition = function(self, x, y)
-
 		self.x, self.y = x, y
-		
 	end
 
 
 	gui.checkbox.setWidth = function(self, w)
-
 		self.width = w
-		
 	end
 
 
 	gui.checkbox.setHeight = function(self, h)
-
 		self.height = h
-		
 	end
 
 
 	gui.checkbox.setDimension = function(self, w, h)
-
 		self.width, self.height = w, h
-		
 	end
 
 
 	gui.checkbox.setValue = function(self, v)
-
 		self.value = v
-		
 	end
 
 
 	gui.checkbox.setPadding = function(self, p)
-
 		self.padding = p
-		
 	end
 
 
 	gui.checkbox.setColor = function(self, c)
-
 		self.color = c
-		
 	end
 
 
 	gui.checkbox.setLabel = function(self, s)
-
 		self.label = s
-		
 	end
 
 
 	gui.checkbox.setTextSize = function(self, s)
-
 		self.size = s
-		
 	end
 
 	--Get methods
-
 	gui.checkbox.getX = function(self)
-
 		return self.x
-		
 	end
 
 
 	gui.checkbox.getY = function(self)
-
 		return self.y
-		
 	end
 
 
 	gui.checkbox.getPosition = function(self)
-
 		return self.x, self.y
-		
 	end
 
 
 	gui.checkbox.getWidth = function(self)
-
 		return self.width
-		
 	end
 
 
 	gui.checkbox.getHeight = function(self)
-
 		return self.height
-		
 	end
 
 
 	gui.checkbox.getDimension = function(self)
-
 		return self.width, self.height
-		
 	end
 
 
 	gui.checkbox.getValue = function(self)
-
 		return self.value
-		
 	end
 
 
 	gui.checkbox.getPadding = function(self)
-
 		return self.padding
-		
 	end
 
 
 	gui.checkbox.getColor = function(self)
-
 		return self.color
-		
 	end
 
 
 	gui.checkbox.getLabel = function(self)
-
 		return self.label
-		
 	end
 
 
 	gui.checkbox.getTextSize = function(self)
-
 		return self.size
-		
 	end
 
 
@@ -404,196 +317,134 @@ return function()
 
 
 	gui.button.draw = function(self)
-
 		love.graphics.setColor(self.color.center)
-		
 		love.graphics.rectangle('fill', self.x+1, self.y+1, self.width-2, self.height-2)
-		
 		love.graphics.setColor(self.color.border)
-		
 		love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
-		
 		love.graphics.setColor(self.color.label)
-		
 		love.graphics.setScissor(self.x+1+self.padding, self.y+1+self.padding, self.width-2-self.padding*2, self.height-2-self.padding*2)
-		
 		love.graphics.setFont(gui.font[self.size])
-		
 		love.graphics.print(self.label, self.x+1+self.padding, self.y+1+self.padding)
-		
 		love.graphics.setScissor()
-		
 	end
 
 
 	gui.button.update = function(self, b, x, y)
-
 		if x >= self.x and x <= self.x+self.width and y >= self.y and y <= self.y+self.height and b == 1 then
-		
 			self.color.center = self.color.down
-			
 		else
-		
 			self.color.center = self.color.up
-			
 		end
-		
 	end
 
 	--Set methods
-
 	gui.button.setX = function(self, x)
-
 		self.x = x
-		
 	end
 
 
 	gui.button.setY = function(self, y)
-
 		self.y = y
-		
 	end
 
 
 	gui.button.setPosition = function(self, x, y)
-
 		self.x, self.y = x, y
-		
 	end
 
 
 	gui.button.setWidth = function(self, w)
-
 		self.width = w
-		
 	end
 
 
 	gui.button.setHeight = function(self, h)
-
 		self.height = h
-		
 	end
 
 
 	gui.button.setDimension = function(self, w, h)
-
 		self.width, self.height = w, h
-		
 	end
 
 
 	gui.button.setClickedFunc = function(self, f)
-
 		self.value = f
-		
 	end
 
 
 	gui.button.setPadding = function(self, p)
-
 		self.padding = p
-		
 	end
 
 
 	gui.button.setColor = function(self, c)
-
 		self.color = c
-		
 	end
 
 
 	gui.button.setLabel = function(self, s)
-
 		self.label = s
-		
 	end
 
 
 	gui.button.setTextSize = function(self, s)
-
 		self.size = s
-		
 	end
 
 	--Get methods
-
 	gui.button.getX = function(self)
-
 		return self.x
-		
 	end
 
 
 	gui.button.getY = function(self)
-
 		return self.y
-		
 	end
 
 
 	gui.button.getPosition = function(self)
-
 		return self.x, self.y
-		
 	end
 
 
 	gui.button.getWidth = function(self)
-
 		return self.width
-		
 	end
 
 
 	gui.button.getHeight = function(self)
-
 		return self.height
-		
 	end
 
 
 	gui.button.getDimension = function(self)
-
 		return self.width, self.height
-		
 	end
 
 
 	gui.button.getClickedFunc = function(self)
-
 		return self.value
-		
 	end
 
 
 	gui.button.getPadding = function(self)
-
 		return self.padding
-		
 	end
 
 
 	gui.button.getColor = function(self)
-
 		return self.color
-		
 	end
 
 
 	gui.button.getLabel = function(self)
-
 		return self.label
-		
 	end
 
 
 	gui.button.getTextSize = function(self)
-
 		return self.size
-		
 	end
 
 
@@ -1176,6 +1027,24 @@ return function()
 		
 	end
 
+	gui.newList = function(self, x, y, width, height, type, objectWidth, objectHeight) --objectWidth is actually height if type == "list"
+
+		local t = {}
+		t.x = x
+		t.y = y
+		t.width = width
+		t.height = height 
+		t.type = type
+		t.objectWidth = type ~= "list" and objectWidth or nil
+		t.objectHeight = type ~= "list" and objectHeight or objectWidth
+		t.scrollDir = "vertical"
+		t.scrolling = 0
+		t.id = #self.__lists + 1
+
+		setmetatable(t, {__index = self.list})
+		self.__lists[t.id] = t
+		return t
+	end
 
 
 	gui.update = function(self, dt)
