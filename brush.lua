@@ -1,7 +1,7 @@
 local brushes = {}
 
 brushes.points = function(self, line)
-	assert(#line < 4, "Invalid line")
+	assert(#line >= 4, "Invalid line")
 	local lengths = {[0] = 0}
 	local length = 0
 	for i = 1, #line/2-1 do
@@ -32,11 +32,17 @@ brushes.points = function(self, line)
 end
 
 
-brushes.new = function(self, png, step)
+--[[brushes.new = function(self, png, step)
 	local t = setmetatable({}, {__index = self})
 	t.png = png
 	t.step = step
 	return t
+end--]]
+brushes.new = function(self, t)
+	t.step = 3
+	t.w = t.img:getWidth()
+	t.h = t.img:getHeight()
+	return setmetatable(t, {__index = self})
 end
 
 return brushes

@@ -1,5 +1,8 @@
 local events = {}
 
+local ffi = require "ffi"
+local libpng = require "libpng"
+
 local cairo = require "lgi".cairo
 local surface = cairo.ImageSurface.create("ARGB32", 1280, 720)
 local cr = cairo.Context.create(surface)
@@ -21,7 +24,7 @@ events.create = function(event)
 
   print("Created line", event.peerID, event.lineID, "smoothness", event.smoothness)
 
-  local line = {lineID = event.lineID, size = event.size, color = event.color, peerID = event.peerID, text = event.text, smoothness = event.smoothness, event.x, event.y}
+  local line = {lineID = event.lineID, size = event.size, color = event.color, peerID = event.peerID, text = event.text, smoothness = event.smoothness, brush = event.brush, event.x, event.y}
   line.startTime = time
   line.order = order
 
@@ -137,6 +140,8 @@ end
 
 
 events.connect = function(event)
+
+  local send = {}
   local nick = event.nick
   if nick == "" then
     nick = string.format("Guest - %08x", math.random(0x10000000, 0xffffffff))
@@ -163,14 +168,31 @@ events.connect = function(event)
     ev.peers[n] = {nick = peer.nick, id = peer.id, latency = peer.latency}
     n = n + 1
   end
-
+  local newBrushes = {}
   for i, b in ipairs(event.brushes) do
-    local png = base64.decode(b.png)
-    if #png > 16384 then -- max size exceeded
-      print()
+    local png = base64.decode(b.png64)
+    local t = {string = png, header_only = true}
+    local header = libpng.load(t).file
+    if header.w > 256 or header.h > 256 then
+      print("A brush exceeded max size; ignoring")
+    elseif header.channels ~= "ga" then
+      print("A brush has invalid pixel format; ignoring")
+    else
+      t.header_only = false
+      local image = libpng.load(t)
+      local str = ffi.string(image.data, image.size)
+      if brushes_cache[str] then -- brush is already in memory
+        print("Received a brush in memory")
+      else
+        brushes_cache[str] = true
+        local id = #brushes + 1
+        brushes[id] = b
+        b.id = id
+        newBrushes[id] = b
+      end
     end
   end
-
+  ev.brushes = brushes
 
   lines[peerID] = {}
 
@@ -184,12 +206,15 @@ events.connect = function(event)
 
   ev.png = png
 
-  local connect = {type = "connect", nick = nick, latency = ping}
+  local connect = {type = "connect", nick = nick, latency = ping, newBrushes = newBrushes}
   print("Someone connected", ping)
   connect.broadcast = true
   connect.peerID = peerID
 
-  return {ev, connect}
+  send[#send+1] = ev
+  send[#send+1] = connect
+
+  return send
 end
 
 

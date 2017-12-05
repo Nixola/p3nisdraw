@@ -4,8 +4,9 @@ local gui = require "gui"()
 
 local CP = require "colorPicker"
 local smooth = require "smooth"
-local brush = require "brush"
+--local brush = require "brush"
 local smoothness = 3
+local brush = 1
 
 local nextID = 0
 local lineID = 0
@@ -126,7 +127,7 @@ game.update = function(self, dt)
     if self.connectPending and self.server:state() == "connected" then
     	print("Attempting connection")
     	local brushes = {} -- load default brushes
-		  for _, filename in love.filesystem.getDirectoryItems("brushes") do
+		  for _, filename in ipairs(love.filesystem.getDirectoryItems("brushes")) do
 		  	local f, e = love.filesystem.load("brushes/" .. filename)
 		  	if not f then
 		  		print("Error loading brush file", f, '\n', e)
@@ -136,6 +137,7 @@ game.update = function(self, dt)
 		  			print("Error running brush file", f, '\n', e)
 		  		else
 		  			brushes[#brushes + 1] = b
+		  			print("Added brush")
 		  		end
 		  	end
 		  end
@@ -328,7 +330,7 @@ game.mousepressed = function(self, x, y, butt)
 	    lineID = nextID
 	    nextID = nextID + 1
 	    tempLine = {size = size, color = {r, g, b, a}, x, y}
-	    local t = {type = "create", lineID = lineID, x = x, y = y, size = size, color = {r, g, b, a}, smoothness = smoothness}
+	    local t = {type = "create", lineID = lineID, x = x, y = y, size = size, color = {r, g, b, a}, smoothness = smoothness, brush = brush}
 	    self.server:send(binser.s(t))
 	    tempLines[lineID] = tempLine
 	  else

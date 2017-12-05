@@ -33,6 +33,13 @@ events.start = function(event)
   	peers_by.nick[p.nick] = p
   end
 
+  brushes = event.brushes
+  for id, b in ipairs(brushes) do
+  	local fdata = love.filesystem.newFileData(b.png64, b.name, "base64")
+  	b.img = love.graphics.newImage(fdata)
+  	brushes[id] = brush:new(b)
+  end
+
   -- ID
   selfID = event.id
 
@@ -77,6 +84,7 @@ events.update = function(event)
     line[#line + 1] = event.x
     line[#line + 1] = event.y
     local t = smooth(line, line.smoothness)
+    print("Brushing line", #t)
     local b = line.brush:points(t)
     if line.batch then
       line.batch:clear()
@@ -90,7 +98,7 @@ events.update = function(event)
     	line.batch:clear()
     end
     for i = 1, #b/2 do
-      line.batch:add(b[i*2-1], b[i*2])
+      line.batch:add(b[i*2-1] - line.brush.w/2, b[i*2] - line.brush.h / 2)
     end
   end
 
