@@ -54,7 +54,9 @@ events.start = function(event)
     for ii, line in pairs(peerLines) do
     	line.brush = brushes[line.brush]
       buffer[#buffer + 1] = line
-      updateLineBatch(line)
+      if not line.text and #line >= 4 then
+      	updateLineBatch(line)
+      end
     end
   end
 
