@@ -27,6 +27,29 @@ local size, r, g, b, a = 3, 1, 1, 1, 1
 local randomRGB = love.math.newRandomGenerator()
 local cacheRGB = setmetatable({}, {__index = function(self, k) randomRGB:setSeed(tonumber(k)); self[k] = {randomRGB:random(256)-1, randomRGB:random(256)-1, randomRGB:random(256)-1}; return self[k]; end})
 
+local updateLineBatch = function(line)
+  if not line.dirty then return end
+  line.dirty = false
+  local t = smooth(line, line.smoothness)
+  print("Brushing line", #t)
+  local b = line.brush:points(t)
+  if line.batch then
+    line.batch:clear()
+  end
+  line.len = line.len or 100
+  if #b/2 > line.len or not line.batch then
+    while #b/2 > line.len do
+      line.len = line.len * 2
+    end
+    line.batch = love.graphics.newSpriteBatch(line.brush.img, line.len, "static")
+  else
+    line.batch:clear()
+  end
+  for i = 1, #b/2 do
+    line.batch:add(b[i*2-1] - line.brush.w/2, b[i*2] - line.brush.h / 2)
+  end
+end
+
 game.connect = function(self, nick, address, port)
 
 	self.host = enet.host_create()
@@ -51,14 +74,9 @@ game.drawLine = function(self, line, dbg)
   a = (a or 1) * 255
   local t = line
   love.graphics.setColor(r,g,b,a)
-  love.graphics.setLineWidth(line.size)
-  love.graphics.circle("fill", line[1], line[2], line.size / 2, line.size)
-  if #line >= 4 then
-    t = smooth(line, line.smoothness)
-    --love.graphics.circle("fill", line[#line-1], line[#line], line.size / 2, line.size)
-    --love.graphics.line(t)
-    love.graphics.draw(line.batch)
-  end
+  --love.graphics.setLineWidth(line.size)
+  updateLineBatch(line)
+  love.graphics.draw(line.batch)
   if dbg then
     local minX, minY, maxX, maxY = 1280, 720, 0, 0
     for i = 1, #t/2 do

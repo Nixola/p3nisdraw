@@ -7,27 +7,6 @@ local tempLines = tempLines
 local smooth = require "smooth"
 local brush = require "brush"
 
-local updateLineBatch = function(line)
-	local t = smooth(line, line.smoothness)
-  print("Brushing line", #t)
-  local b = line.brush:points(t)
-  if line.batch then
-    line.batch:clear()
-  end
-  line.len = line.len or 100
-  if #b/2 > line.len or not line.batch then
-  	while #b/2 > line.len do
-  		line.len = line.len * 2
-  	end
-  	line.batch = love.graphics.newSpriteBatch(line.brush.img, line.len, "static")
-  else
-  	line.batch:clear()
-  end
-  for i = 1, #b/2 do
-    line.batch:add(b[i*2-1] - line.brush.w/2, b[i*2] - line.brush.h / 2)
-  end
-end
-
 
 events.start = function(event)
   -- PNG
@@ -54,7 +33,8 @@ events.start = function(event)
     for ii, line in pairs(peerLines) do
     	line.brush = brushes[line.brush]
       buffer[#buffer + 1] = line
-      updateLineBatch(line)
+      line.dirty = true
+      --updateLineBatch(line)
     end
   end
 
@@ -83,9 +63,12 @@ events.create = function(event)
     smoothness = event.smoothness,
     brush = brushes[event.brush],
     len = 100,
+    dirty = true,
     event.x, event.y
   }
-  line.batch = love.graphics.newSpriteBatch(line.brush.img, line.len)
+  if not line.text then
+    line.batch = love.graphics.newSpriteBatch(line.brush.img, line.len)
+  end
   print("Line from", event.peerID, lines[event.peerID])
   lines[event.peerID][event.lineID] = line
   buffer[#buffer + 1] = line
@@ -107,7 +90,8 @@ events.update = function(event)
   else
     line[#line + 1] = event.x
     line[#line + 1] = event.y
-    updateLineBatch(line)
+    line.dirty = true
+    --updateLineBatch(line)
   end
 
 end
