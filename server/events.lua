@@ -10,6 +10,23 @@ cr:select_font_face("Vera")
 local smooth = require "smooth"
 local base64 = require "base64"
 
+local pr = function(s, stride)
+	local i = 0
+    for c in s:gmatch(".") do
+    	if i == stride then
+    		print()
+    		i = 0
+    	end
+    	i = i + 1
+    	io.write(string.format("%02X", c:byte()))
+    	if i%4 == 0 then
+    		io.write " "
+        end
+    end
+    print()
+    print()
+end
+
 -- event handlers return a table of events. Every event in the table contains a boolean, "broadcast",
 -- which specifies whether the returned event should be broadcast to everyone or not. If not, it's just
 -- sent to the sender. The table is to be iterated in order, as the order of events (obviously) matters.
@@ -46,8 +63,9 @@ events.create = function(event)
     if line.endTime and (time - line.endTime > (tonumber(config.endTime) or 120)) then
       local t = line
       returns[#returns + 1] = {type = "squash", lineID = line.lineID, peerID = line.peerID, broadcast = true}
-      cr:new_path()
+      --cr:new_path()
       if line.text then --it's text
+      	cr:new_path()
         cr:set_font_size(line.size)
         local fextents = cr:font_extents()
         cr:move_to(t[1], t[2] + fextents.ascent)
@@ -55,19 +73,20 @@ events.create = function(event)
         cr:text_path(line.text)
         cr:fill()
       else
-        cr:move_to(t[1], t[2])
-        if #line >= 4 then
-          t = smooth(line, line.smoothness)
-        end
-        for i = 2, #t / 2 do
-          local x, y = t[i * 2 - 1], t[i * 2]
-          cr:line_to(x, y)
-        end
-
-        cr.line_width = line.size
-        cr.line_cap = "ROUND"
-        cr:set_source_rgba(unpack(line.color))
-        cr:stroke()
+      	local steps = require "brush".points(nil, line)
+      	local b = brushes[line.brush]
+      	---[[
+      	pr(ffi.string(
+      		surfaces[b]:get_data(),
+      		surfaces[b]:get_height()*
+      		  surfaces[b]:get_stride()),
+      	  surfaces[b]:get_stride())--]]
+      	print("Drawing", b.id, surfaces[b], b)
+      	for i = 1, #steps/2 do
+      	  local x, y = steps[i*2-1], steps[i*2]
+      	  cr:set_source_surface(surfaces[b], x, y)
+      	  cr:paint()
+      	end
       end
 
       table.remove(buffer, i)
@@ -179,8 +198,13 @@ events.connect = function(event)
       print("A brush has invalid pixel format; ignoring")
     else
       t.header_only = false
+      t.accept = {"rgba"}
       local image = libpng.load(t)
       local str = ffi.string(image.data, image.size)
+      local f = io.open("/tmp/gabrush", "w")
+      f:write(str)
+      f:close()
+      print("Brush pixel format", image.pixel, "stride", image.stride)
       if brushes_cache[str] then -- brush is already in memory
         print("Received a brush in memory")
       else
@@ -189,6 +213,15 @@ events.connect = function(event)
         brushes[id] = b
         b.id = id
         newBrushes[id] = b
+        local data = str:gsub("(.)(.)", "%1%1%1%1")
+        local f = io.open("/tmp/argbbrush", "w")
+        f:write(data)
+        f:close()
+        --pr(data, image.stride*2)
+        surfaces[b] = cairo.ImageSurface.create_for_data(data, "ARGB32", image.w, image.h, image.stride*2)--cairo.Format.stride_for_width("ARGB32", image.w))
+        print("Brush", id, surfaces[b], b)
+        pr(ffi.string(surfaces[b]:get_data(), surfaces[b]:get_height()*surfaces[b]:get_stride()),surfaces[b]:get_stride())
+        --surfaces[b]:write_to_png("dio bestia.png")
       end
     end
   end
@@ -202,7 +235,7 @@ events.connect = function(event)
   local f = io.open(filename, "r")
   local png = f:read "*a"
   f:close()
-  os.remove(filename)
+  --os.remove(filename)
 
   ev.png = png
 
