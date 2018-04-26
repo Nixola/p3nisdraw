@@ -20,12 +20,13 @@ local colorPicker
 
 local textbox
 
-local dbg, interface
+local dbg
+local interface = require "interface"
 
 local size, r, g, b, a = 3, 1, 1, 1, 1
 
 local randomRGB = love.math.newRandomGenerator()
-local cacheRGB = setmetatable({}, {__index = function(self, k) randomRGB:setSeed(tonumber(k)); self[k] = {randomRGB:random(256)-1, randomRGB:random(256)-1, randomRGB:random(256)-1}; return self[k]; end})
+cacheRGB = setmetatable({}, {__index = function(self, k) randomRGB:setSeed(tonumber(k)); self[k] = {randomRGB:random(256)-1, randomRGB:random(256)-1, randomRGB:random(256)-1}; return self[k]; end})
 
 local updateLineBatch = function(line)
   if not line.dirty then return end
@@ -113,33 +114,8 @@ game.drawText = function(self, text)
 end
 
 
-game.drawInterface = function(self)
-
-  love.graphics.setColor(32, 32, 32, 192)
-
-  love.graphics.rectangle("fill", -0.5, -0.5, 161, 721)
-
-  love.graphics.setColor(255, 255, 255, 255)
-
-  love.graphics.setFont(gui.font[12])
-
-  love.graphics.print(string.format("%dms, %d KB/%d KB", self.server:round_trip_time(), math.floor(self.host:total_sent_data()/1024), math.floor(self.host:total_received_data()/1024)), 0, 0)
-
-  local y = 0
-  for id, peer in pairs(peers_by.id) do
-    if peer.nick ~= "" then
-      love.graphics.setColor(cacheRGB[id])
-      love.graphics.print(peer.nick, 16, 96 + 16*y)
-      love.graphics.print(peer.latency, 128, 96+16*y)
-      y = y + 1
-    end
-  end
-end
-
-
 game.update = function(self, dt)
   dbg = love.keyboard.isDown("tab") and config.debugDraw
-  interface = love.keyboard.isDown("tab")
   while true do
     local event = self.host:service(0)
     if self.connectPending and self.server:state() == "connected" then
@@ -239,8 +215,8 @@ game.draw = function(self, snap)
   	textbox:draw()
   end
 
-  if interface then
-    self:drawInterface()
+  if interface.shown then
+    interface:draw()
   end
 end
 
@@ -331,13 +307,21 @@ game.keypressed = function(self, key, scan)
     textbox:keypressed(key, scan)
   end
 
-  if scan == "escape" and textbox then
-    local t = {type = "finish", lineID = textID, text = ""}
-    local t2 = {type = "delete", lineID = textID}
-    states.game.server:send(binser.s(t))
-    states.game.server:send(binser.s(t2))
-    textbox:delete()
-    textbox = nil
+  if scan == "escape" then
+    if textbox then
+      local t = {type = "finish", lineID = textID, text = ""}
+      local t2 = {type = "delete", lineID = textID}
+      states.game.server:send(binser.s(t))
+      states.game.server:send(binser.s(t2))
+      textbox:delete()
+      textbox = nil
+    else
+      if interface.shown then
+        interface:hide()
+      else
+        interface:show()
+      end
+    end
   end
 end
 
