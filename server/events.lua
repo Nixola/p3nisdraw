@@ -80,15 +80,14 @@ events.create = function(event)
       else
       	local steps = require "brush".points(nil, line)
       	local b = brushes[line.brush]
-      	---[[
-      	pr_sur(surfaces[b])
       	print("Drawing", b.id, surfaces[b], b, cr:operator())
+        --let's change the color of the brush
+        cr:rgb(line.color[1], line.color[2], line.color[3])
       	for i = 1, #steps/2 do
       	  local x, y = steps[i*2-1], steps[i*2]
-      	  cr:source(surfaces[b], x, y)
-      	  cr:paint()
+      	  cr:mask(surfaces[b], x, y)
+      	  --cr:paint()
       	end
-        --pr_sur(surface)
       end
 
       table.remove(buffer, i)
@@ -219,14 +218,10 @@ events.connect = function(event)
         local f = io.open("/tmp/argbbrush", "w")
         f:write(data)
         f:close()
-        --pr(data, image.stride*2)
-        --surfaces[b] = cairo.ImageSurface.create_for_data(data, "ARGB32", image.w, image.h, image.stride*2)--cairo.Format.stride_for_width("ARGB32", image.w))
         surfaces[b] = cairo.image_surface("argb32", image.w, image.h)
-        print(surfaces[b]:data())
         ffi.copy(surfaces[b]:data(), data)
+        surfaces[b]:mark_dirty()
         print("Brush", id, surfaces[b], b)
-        --pr_sur(surfaces[b])
-        --surfaces[b]:write_to_png("dio bestia.png")
       end
     end
   end
