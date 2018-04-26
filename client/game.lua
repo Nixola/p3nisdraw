@@ -29,7 +29,7 @@ local randomRGB = love.math.newRandomGenerator()
 cacheRGB = setmetatable({}, {__index = function(self, k) randomRGB:setSeed(tonumber(k)); self[k] = {randomRGB:random(256)-1, randomRGB:random(256)-1, randomRGB:random(256)-1}; return self[k]; end})
 
 local updateLineBatch = function(line)
-  if not line.dirty then return end
+  if not line.dirty or #line < 4 then return end
   line.dirty = false
   local t = smooth(line, line.smoothness)
   print("Brushing line", #t)
@@ -216,6 +216,7 @@ game.draw = function(self, snap)
   end
 
   if interface.shown then
+    print("WOW")
     interface:draw()
   end
 end
@@ -252,7 +253,8 @@ game.keypressed = function(self, key, scan)
       self.x = math.floor(self.x + 8)
       self.y = math.floor(self.y - gui.font[self.size]:getHeight()/2)
       local t = {type = "update", lineID = textID, x = self.x, y = self.y, size = self.size, color = {r, g, b, a}, text = self.text}
-      if self.text:match("^/") then return end
+      if self.text:match("^/") or not self.dirty then return end
+      self.dirty = false
       states.game.server:send(binser.s(t))
   	end
 
@@ -364,6 +366,7 @@ end
 game.textinput = function(self, char)
 	if textbox then
 		textbox:typed(char)
+    textbox.dirty = true
 	end
 end
 

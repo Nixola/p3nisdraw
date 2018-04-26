@@ -7,6 +7,8 @@ local tempLines = tempLines
 local smooth = require "smooth"
 local brush = require "brush"
 
+local interface = require "interface"
+
 
 events.start = function(event)
   -- PNG

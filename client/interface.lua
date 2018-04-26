@@ -3,10 +3,18 @@ local interface = {}
 
 interface.spawn = function(self)
 	self.gui = require "gui"()
-	local listWidth = 32*4 + 2*5 -- four elements, five padding bits
-	local listHeight = 48 * 8.5 + 2*9 -- 8½ elements, nine padding bits
+	local iw, ih = 56, 64
+	local listWidth = iw*2 + 4*3 -- elements, padding
+	local listHeight = ih * 6 + 4*7 -- elements, padding
 
-	self.brushList = self.gui:newList(1280 - listWidth - 8, 96, listWidth, listHeight, "grid", 32, 48)
+	self.brushList = self.gui:newList(1280 - listWidth - 8, 96, listWidth, listHeight, "grid", iw, ih)
+	self.brushList.padding = 4
+	local items = {}
+	for i, v in pairs(brushes) do
+		for ii, vv in pairs(v) do print(ii, vv) end
+		items[#items+1] = {img = v.img, text = v.name}
+	end
+	self.brushList:insert(items)
 end
 
 interface.show = function(self)

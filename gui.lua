@@ -864,7 +864,7 @@ return function()
 
 
 =======--]]
-	gui.list = {padding = 2, color = {border = grey.c7, background = grey.c4, items = grey.c5, text = white}}
+	gui.list = {padding = 2, color = {border = grey.c7, background = grey.c1, items = grey.c4, text = white}}
 	gui.list.delete = function(self)
 		self._delete = true
 		gui.__delete = true
@@ -895,7 +895,7 @@ return function()
 	gui.list.insert = function(self, t, p)
 		p = p or #self.items + 1
 		for i, v in ipairs(t) do
-			table.insert(self.items, v, p)
+			table.insert(self.items, p, v)
 			p = p + 1
 		end
 		self:updateOverflow()
@@ -915,28 +915,33 @@ return function()
 	gui.list.draw = function(self) 
 		love.graphics.setColor(self.color.background)
 		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
-		love.graphics.setColor(self.color.border)
-		love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
-		love.graphics.setScissor(self.x, self.y, self.width, self.height)
+		--love.graphics.setScissor(self.x, self.y, self.width, self.height)
 		if self.scrollDir == "vertical" then
-			local itemsInRow = math.floor((self.width - self.padding) / (itemWidth + self.padding))
+			local itemsInRow = math.floor((self.width - self.padding) / (self.itemWidth + self.padding))
 			for i, v in ipairs(self.items) do
 				local ix = (i - 1) % itemsInRow
 				local iy = math.ceil(i / itemsInRow) - 1
+
+				local dx = ix * (self.padding + self.itemWidth) + self.padding
+				local dy = iy * (self.padding + self.itemHeight) + self.padding
 				love.graphics.setColor(self.color.items)
-				love.graphics.rectangle("fill", self.x + ix * (self.padding + self.itemWidth), self.itemWidth, self.itemHeight)
+				love.graphics.rectangle("fill", self.x + dx, self.y + dy - self.scrolling, self.itemWidth, self.itemHeight)
 				love.graphics.setColor(white)
 				local imageWidth, imageHeight = v.img:getDimensions()
 				local textWidth, textHeight = gui.font[12]:getWidth(v.text), gui.font[12]:getHeight()
 				local maxImageWidth, maxImageHeight = self.itemWidth - self.padding * 2, self.itemHeight - textHeight - self.padding * 3
 				local scale = math.min(maxImageHeight / imageHeight, maxImageWidth / imageWidth)
 				scale = math.max(scale, 1)
-				local imageX, imageY = self.itemWidth/2 - imageWidth * scale, (self.itemHeight - textHeight)/2 - imageHeight * scale
-				love.graphics.draw(v.img, self.x + ix * (self.itemWidth + self.padding) + imageX, self.y + iy * (self.itemHeight + self.padding) + imageY - self.scrolling)
+				local imageX = self.itemWidth/2 - imageWidth/2 --* scale
+				local imageY = self.itemHeight/2 - imageHeight/2 - textHeight --* scale
+				love.graphics.draw(v.img, math.floor(self.x + dx + imageX), math.floor(self.y + dy + imageY - self.scrolling))--, 0, scale, scale)
 				love.graphics.setColor(self.color.text)
-				love.graphics.printf(self.text, self.x + self.padding, self.y - scrolling - textHeight + self.itemHeight - self.padding, self.itemWidth - self.padding*2, "center")
+				love.graphics.printf(v.text, self.x + self.padding + dx, self.y - self.scrolling - textHeight*2 + self.itemHeight - self.padding*2 + dy, self.itemWidth - self.padding*2, "center")
 			end
 		end
+		love.graphics.setScissor()
+		love.graphics.setColor(self.color.border)
+		love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 	end
 -->>>>>>> 71be93c6d4d3a88fbd633a7d2e5b10e462608be6
 
