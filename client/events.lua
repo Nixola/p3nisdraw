@@ -44,7 +44,10 @@ events.start = function(event)
   brushes = event.brushes
   for id, b in ipairs(brushes) do
   	local fdata = love.filesystem.newFileData(b.png64, b.name, "base64")
-  	b.img = love.graphics.newImage(fdata)
+    local imgD = love.image.newImageData(fdata)
+    imgD:mapPixel(function(r,g,b,a) return 255,255,255,b end)
+    b.img = love.graphics.newImage(imgD)
+  	--b.img = love.graphics.newImage(fdata)
   	brushes[id] = brush:new(b)
   end
 

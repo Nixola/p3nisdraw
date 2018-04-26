@@ -18,16 +18,17 @@ local pr = function(s, stride)
     		i = 0
     	end
     	i = i + 1
-    	io.write(string.format("%02X", c:byte()))
-    	if i%4 == 0 then
-    		io.write " "
-        end
+    	io.write(string.format("%02X ", c:byte()))
+    	--if i%4 == 0 then
+    	--	io.write " "
+      --end
     end
     print()
     print()
 end
 
-local pr_sur = function(s, stride)
+local pr_sur = function(s)
+  print("Printing surface with stride", s:stride())
   local str = ffi.string(s:data(), s:height()*s:stride())
   pr(str, s:stride())
 end
@@ -68,7 +69,6 @@ events.create = function(event)
     if line.endTime and (time - line.endTime > (tonumber(config.endTime) or 120)) then
       local t = line
       returns[#returns + 1] = {type = "squash", lineID = line.lineID, peerID = line.peerID, broadcast = true}
-      --cr:new_path()
       if line.text then --it's text
       	cr:new_path()
         cr:font_size(line.size)
@@ -78,7 +78,8 @@ events.create = function(event)
         cr:text_path(line.text)
         cr:fill()
       else
-      	local steps = require "brush".points(nil, line)
+        local steps = smooth(line, line.smoothness)
+      	steps = require "brush".points(nil, steps)
       	local b = brushes[line.brush]
       	print("Drawing", b.id, surfaces[b], b, cr:operator())
         --let's change the color of the brush
@@ -86,7 +87,6 @@ events.create = function(event)
       	for i = 1, #steps/2 do
       	  local x, y = steps[i*2-1], steps[i*2]
       	  cr:mask(surfaces[b], x, y)
-      	  --cr:paint()
       	end
       end
 
@@ -195,16 +195,13 @@ events.connect = function(event)
     local header = libpng.load(t).file
     if header.w > 256 or header.h > 256 then
       print("A brush exceeded max size; ignoring")
-    elseif header.channels ~= "ga" then
+    elseif header.channels ~= "g" then
       print("A brush has invalid pixel format; ignoring")
     else
       t.header_only = false
-      t.accept = {"rgba"}
+      t.accept = {"g"}
       local image = libpng.load(t)
       local str = ffi.string(image.data, image.size)
-      local f = io.open("/tmp/gabrush", "w")
-      f:write(str)
-      f:close()
       print("Brush pixel format", image.pixel, "stride", image.stride)
       if brushes_cache[str] then -- brush is already in memory
         print("Received a brush in memory")
@@ -214,13 +211,20 @@ events.connect = function(event)
         brushes[id] = b
         b.id = id
         newBrushes[id] = b
-        local data = str:gsub("(.)(.)", "%1%1%1%1")
-        local f = io.open("/tmp/argbbrush", "w")
-        f:write(data)
-        f:close()
-        surfaces[b] = cairo.image_surface("argb32", image.w, image.h)
+        local data = str
+        --pr(str, 15)
+        --data = data:gsub("(.)(.)(.)(.)", "")
+        surfaces[b] = cairo.image_surface("a8", image.w, image.h)
+        --fix the stride differences
+        local dstride = surfaces[b]:stride() - image.stride
+        local pattern = ("(%s)"):format(("."):rep(image.stride))
+        local substit = string.format("%%1%s", ('0'):rep(dstride)) -- padding with zeroes. using actual null bytes fucked stuff up.
+        data = data:gsub(pattern, substit)
         ffi.copy(surfaces[b]:data(), data)
         surfaces[b]:mark_dirty()
+        surfaces[b]:save_png("/tmp/testbrush.png")
+        print("W", image.w, "H", image.h, "stride", image.stride)
+        --pr_sur(surfaces[b])
         print("Brush", id, surfaces[b], b)
       end
     end
