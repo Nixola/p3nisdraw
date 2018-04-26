@@ -3,10 +3,10 @@ local events = {}
 local ffi = require "ffi"
 local libpng = require "libpng"
 
-local cairo = require "lgi".cairo
-local surface = cairo.ImageSurface.create("ARGB32", 1280, 720)
-local cr = cairo.Context.create(surface)
-cr:select_font_face("Vera")
+local cairo = require "cairo"
+local surface = cairo.image_surface("argb32", 1280, 720)
+local cr = surface:context()
+cr:font_face("Vera")
 local smooth = require "smooth"
 local base64 = require "base64"
 
@@ -25,6 +25,11 @@ local pr = function(s, stride)
     end
     print()
     print()
+end
+
+local pr_sur = function(s, stride)
+  local str = ffi.string(s:data(), s:height()*s:stride())
+  pr(str, s:stride())
 end
 
 -- event handlers return a table of events. Every event in the table contains a boolean, "broadcast",
@@ -66,27 +71,24 @@ events.create = function(event)
       --cr:new_path()
       if line.text then --it's text
       	cr:new_path()
-        cr:set_font_size(line.size)
+        cr:font_size(line.size)
         local fextents = cr:font_extents()
         cr:move_to(t[1], t[2] + fextents.ascent)
-        cr:set_source_rgba(unpack(line.color))
+        cr:rgba(unpack(line.color))
         cr:text_path(line.text)
         cr:fill()
       else
       	local steps = require "brush".points(nil, line)
       	local b = brushes[line.brush]
       	---[[
-      	pr(ffi.string(
-      		surfaces[b]:get_data(),
-      		surfaces[b]:get_height()*
-      		  surfaces[b]:get_stride()),
-      	  surfaces[b]:get_stride())--]]
-      	print("Drawing", b.id, surfaces[b], b)
+      	pr_sur(surfaces[b])
+      	print("Drawing", b.id, surfaces[b], b, cr:operator())
       	for i = 1, #steps/2 do
       	  local x, y = steps[i*2-1], steps[i*2]
-      	  cr:set_source_surface(surfaces[b], x, y)
+      	  cr:source(surfaces[b], x, y)
       	  cr:paint()
       	end
+        --pr_sur(surface)
       end
 
       table.remove(buffer, i)
@@ -218,9 +220,12 @@ events.connect = function(event)
         f:write(data)
         f:close()
         --pr(data, image.stride*2)
-        surfaces[b] = cairo.ImageSurface.create_for_data(data, "ARGB32", image.w, image.h, image.stride*2)--cairo.Format.stride_for_width("ARGB32", image.w))
+        --surfaces[b] = cairo.ImageSurface.create_for_data(data, "ARGB32", image.w, image.h, image.stride*2)--cairo.Format.stride_for_width("ARGB32", image.w))
+        surfaces[b] = cairo.image_surface("argb32", image.w, image.h)
+        print(surfaces[b]:data())
+        ffi.copy(surfaces[b]:data(), data)
         print("Brush", id, surfaces[b], b)
-        pr(ffi.string(surfaces[b]:get_data(), surfaces[b]:get_height()*surfaces[b]:get_stride()),surfaces[b]:get_stride())
+        --pr_sur(surfaces[b])
         --surfaces[b]:write_to_png("dio bestia.png")
       end
     end
@@ -230,7 +235,7 @@ events.connect = function(event)
   lines[peerID] = {}
 
   local filename = os.tmpname()
-  surface:write_to_png(filename)
+  surface:save_png(filename)
 
   local f = io.open(filename, "r")
   local png = f:read "*a"
