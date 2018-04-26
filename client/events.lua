@@ -87,7 +87,9 @@ events.create = function(event)
     len = 100,
     event.x, event.y
   }
-  line.batch = love.graphics.newSpriteBatch(line.brush.img, line.len)
+  if line.brush then
+    line.batch = love.graphics.newSpriteBatch(line.brush.img, line.len)
+  end
   print("Line from", event.peerID, lines[event.peerID])
   lines[event.peerID][event.lineID] = line
   buffer[#buffer + 1] = line
