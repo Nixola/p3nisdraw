@@ -35,6 +35,13 @@ local getCharAtX = function(font, string, mousex)
 	return c, 1
 end
 
+local AABB = function(x1,y1,w1,h1, x2,y2,w2,h2)
+  return x1 < x2+w2 and
+         x2 < x1+w1 and
+         y1 < y2+h2 and
+         y2 < y1+h1
+end
+
 
 return function()
 
@@ -75,10 +82,6 @@ return function()
 
 	gui.font = setmetatable({}, {__index = function(t, i) if tonumber(i) then t[i] = love.graphics.newFont(i) return t[i] end end})
 
-	gui.delete = function(self)
-		self._delete = true
-		gui.__delete = true
-	end
 
 	--#------#####--####---#####--#------#####--
 	--#------#---#--#--#---#------#------#------
@@ -88,7 +91,12 @@ return function()
 	-----------------LABELS---------------------
 		
 	gui.label = {label = '', color = white, size = 12}
-	setmetatable(gui.label, gui.mt)
+	--setmetatable(gui.label, gui.mt)
+
+	gui.label.delete = function(self)
+		self._delete = true
+		gui.__delete = true
+	end
 
 
 	gui.label.draw = function(self)
@@ -98,6 +106,15 @@ return function()
 		
 		love.graphics.print(self.label, self.x, self.y)
 		
+	end
+
+	gui.label.updateSize = function(self)
+		self.width = gui.font[self.size]:getWidth(self.label)
+		self.height = gui.font[self.size]:getHeight()
+	end
+
+	gui.label.hover = function(self, x, y)
+		return AABB(self.x, self.y, self.w, self.h, x, y, 1, 1)
 	end
 
 	--Set methods
@@ -124,11 +141,13 @@ return function()
 
 	gui.label.setLabel = function(self, s)
 		self.label = s
+		self:updateSize()
 	end
 
 
 	gui.label.setSize = function(self, s)
 		self.size = s
+		self:updateSize()
 	end
 
 	--Get methods
@@ -170,13 +189,22 @@ return function()
 	------------------------------CHECKBOXES--------------------------------
 
 	gui.checkbox = {value = false, width = 12, height = 12, padding = 2, label = '', color = {border = white, check = white, label = white}, size = 12}
-	setmetatable(gui.checkbox, gui.mt)
+	--setmetatable(gui.checkbox, gui.mt)
+
+	gui.checkbox.delete = function(self)
+		self._delete = true
+		gui.__delete = true
+	end
 
 
 	gui.checkbox.clicked = function(self, b)
 		if b == 1 then
 			self.value = not self.value
 		end
+	end
+
+	gui.checkbox.hover = function(self, x, y)
+		return AABB(self.x, self.y, self.width, self.height, x, y, 1,1)
 	end
 
 
@@ -313,8 +341,15 @@ return function()
 	---------------------BUTTONS-----------------------
 
 	gui.button = {label = '', padding = 2, color = {border = grey.c6, center = grey.c4, down = grey.c2, up = grey.c4, label = white}, size = 12, clicked = function() end}
-	setmetatable(gui.button, gui.mt)
+	--setmetatable(gui.button, gui.mt)
+	gui.button.delete = function(self)
+		self._delete = true
+		gui.__delete = true
+	end
 
+	gui.button.hover = function(self, x, y)
+		return AABB(self.x, self.y, self.width, self.height, x, y, 1,1)
+	end
 
 	gui.button.draw = function(self)
 		love.graphics.setColor(self.color.center)
@@ -457,14 +492,22 @@ return function()
 	---------------------------TEXTLINES-------------------------
 
 	gui.textLine = {text = '', padding = 2, color = {border = grey.c6, center = grey.c4, text = white}, size = 12, enter = function() end, cursorTime = 0}
-	setmetatable(gui.textLine, gui.mt)
+	--setmetatable(gui.textLine, gui.mt)
+	gui.textLine.delete = function(self)
+		self._delete = true
+		gui.__delete = true
+	end
+
+	gui.textLine.hover = function(self, x, y)
+		return AABB(self.x, self.y, self.width, self.height, x, y, 1,1)
+	end
 
 
 	gui.textLine.draw = function(self)
 
 		setLine(1, 'smooth')
 
-		local font = self.font[self.size]
+		local font = gui.font[self.size]
 		
 		love.graphics.setColor(self.color.center)
 		
@@ -511,7 +554,7 @@ return function()
 		
 			setLine(1, 'rough')
 			
-			love.graphics.line(cursorX, self.y - self.padding, cursorX, self.y + self.font[self.size]:getHeight() + self.padding)
+			love.graphics.line(cursorX, self.y - self.padding, cursorX, self.y + gui.font[self.size]:getHeight() + self.padding)
 			
 		end
 		
@@ -774,6 +817,7 @@ return function()
 
 		--]]
 
+--[[<<<<<<< HEAD
 
 	--#------#--####--#####--####--
 	--#---------#-------#----#-----
@@ -819,6 +863,82 @@ return function()
 
 
 
+=======--]]
+	gui.list = {padding = 2, color = {border = grey.c7, background = grey.c4, items = grey.c5, text = white}}
+	gui.list.delete = function(self)
+		self._delete = true
+		gui.__delete = true
+	end
+
+	gui.list.hover = function(self, x, y)
+		return AABB(self.x, self.y, self.width, self.height, x, y, 1,1)
+	end
+
+	gui.list.setCallback = function(self, func)
+		self.callback = func
+	end
+
+	gui.list.updateOverflow = function(self)
+		local itemWidth = self.itemWidth or self.width - self.padding*2
+		local itemHeight = self.itemHeight
+		local l = #self.items
+		if self.scrollDir == "vertical" then
+			local itemsInRow = math.floor((self.width - self.padding) / (itemWidth + self.padding))
+			self.overflow = math.max(0, math.ceil(l / itemsInRow) * (itemHeight + self.padding) - self.padding)
+		else
+			local itemsInColumn = math.floor((self.height - self.padding) / (itemWidth + self.padding))
+			self.overflow = math.max(0, math.ceil(l / itemsInColumn) * (itemWidth + self.padding) - self.padding)
+		end
+		self.scrolling = clamp(0, self.scrolling, self.overflow)
+	end
+
+	gui.list.insert = function(self, t, p)
+		p = p or #self.items + 1
+		for i, v in ipairs(t) do
+			table.insert(self.items, v, p)
+			p = p + 1
+		end
+		self:updateOverflow()
+	end
+
+	gui.list.remove = function(self, n)
+		table.remove(self.items, n)
+		self:updateOverflow()
+	end
+
+	gui.list.wheelmoved = function(self, x, y)
+		self.scrollingNext = clamp(0, self.scrollingNext + y * 40, self.overflow)
+	end
+
+	gui.list.update = function() end
+
+	gui.list.draw = function(self) 
+		love.graphics.setColor(self.color.background)
+		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+		love.graphics.setColor(self.color.border)
+		love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
+		love.graphics.setScissor(self.x, self.y, self.width, self.height)
+		if self.scrollDir == "vertical" then
+			local itemsInRow = math.floor((self.width - self.padding) / (itemWidth + self.padding))
+			for i, v in ipairs(self.items) do
+				local ix = (i - 1) % itemsInRow
+				local iy = math.ceil(i / itemsInRow) - 1
+				love.graphics.setColor(self.color.items)
+				love.graphics.rectangle("fill", self.x + ix * (self.padding + self.itemWidth), self.itemWidth, self.itemHeight)
+				love.graphics.setColor(white)
+				local imageWidth, imageHeight = v.img:getDimensions()
+				local textWidth, textHeight = gui.font[12]:getWidth(v.text), gui.font[12]:getHeight()
+				local maxImageWidth, maxImageHeight = self.itemWidth - self.padding * 2, self.itemHeight - textHeight - self.padding * 3
+				local scale = math.min(maxImageHeight / imageHeight, maxImageWidth / imageWidth)
+				scale = math.max(scale, 1)
+				local imageX, imageY = self.itemWidth/2 - imageWidth * scale, (self.itemHeight - textHeight)/2 - imageHeight * scale
+				love.graphics.draw(v.img, self.x + ix * (self.itemWidth + self.padding) + imageX, self.y + iy * (self.itemHeight + self.padding) + imageY - self.scrolling)
+				love.graphics.setColor(self.color.text)
+				love.graphics.printf(self.text, self.x + self.padding, self.y - scrolling - textHeight + self.itemHeight - self.padding, self.itemWidth - self.padding*2, "center")
+			end
+		end
+	end
+-->>>>>>> 71be93c6d4d3a88fbd633a7d2e5b10e462608be6
 
 		
 	--NEW!
@@ -826,35 +946,20 @@ return function()
 	gui.newCheckbox = function(self, x, y, v, l, w, h, p, c, s)
 
 		local t = {}
-		
 		t.x = x
-		
 		t.y = y
-		
 		t.value = v
-		
 		t.label = l
-		
 		t.width = w
-		
 		t.height = h
-		
 		t.padding = p
-		
 		t.color = c
-		
 		t.size = s
-		
 		t.id = #self.__checkboxes + 1
-		
 		t.type = 'checkboxes'
-		
 		setmetatable(t, {__index = function(t, i) return self.checkbox[i]end})
-		
 		table.insert(self.__checkboxes, t)
-		
 		return self.__checkboxes[t.id]
-		
 	end
 
 
@@ -905,9 +1010,9 @@ return function()
 		
 		t.size = s
 		
-		t.width = w or self.font[s or self.button.size]:getWidth(l or '')+t.padding*2+2
+		t.width = w or gui.font[s or self.button.size]:getWidth(l or '')+t.padding*2+2
 		
-		t.height = h or self.font[s or self.button.size]:getHeight()+t.padding*2+2
+		t.height = h or gui.font[s or self.button.size]:getHeight()+t.padding*2+2
 		
 		t.id = #self.__buttons + 1
 		
@@ -938,143 +1043,75 @@ return function()
 
 
 	gui.newSlider = function(self, x, y, min, max, value, vert, w, h, slider, color)
-
 		local t = {}
-		
 		t.x = x
-		
 		t.y = y
-		
 		t.min = min
-		
 		t.max = max
-		
 		t.value = value or (min+max)/2
-		
 		t.vert = vert
-		
 		t.height = h
-		
 		t.slider = slider
-		
 		t.color = color
-		
 		t.width = w or max
-		
 		t.id = #self.__sliders + 1
-		
 		t.type = 'sliders'
-		
 		setmetatable(t, {__index = function(t,i) return self.slider[i] end})
-		
 		table.insert(self.__sliders, t)
-		
 		return self.__sliders[t.id]
-		
 	end
-
-
 
 	gui.newTextLine = function(self, x, y, enter, text, width, size, padding, color)
-
 		local t = {}
-		
 		t.x = x
-		
 		t.y = y
-		
 		t.enter = enter
-		
 		t.text = text
-		
 		t.width = width or gui.font[size or self.textLine.size]:getWidth(t.text or self.textLine.text)
-		
 		t.height = gui.font[size or self.textLine.size]:getHeight() + (padding or self.textLine.padding)*2 + 2
-		
 		t.size = size
-		
 		t.padding = padding
-		
 		t.color = color or {border = {}, center = {}, text = {}}
-		
 		t.cursor = utf8.len(t.text)
-		
 		t.id = #self.__textLines + 1
-		
 		t.type = 'textLines'
-		
 		if not color then
-		
 			for i, v in pairs(t.color) do
-			
 				t.color[i][1] = gui.textLine.color[i][1]
-				
 				t.color[i][2] = gui.textLine.color[i][2]
-				
 				t.color[i][3] = gui.textLine.color[i][3]
-				
 			end
-			
 		end
-		
 		setmetatable(t, {__index = function(t,i) return self.textLine[i] end})
-
 		t.printX = t.x + 1 + t.padding
-		
 		table.insert(self.__textLines, t)
-		
 		return self.__textLines[t.id]
-		
 	end
-
-
 
 	gui.newSlider2d = function(self, x, y, Xmin, Xmax, Xvalue, Ymin, Ymax, Yvalue, sliderX, sliderY, w, h, slider, color, border)
-
 		local t = {}
-		
 		t.x = x
-		
 		t.y = y
-		
 		t.Xmin = Xmin
-		
 		t.Xmax = Xmax
-		
 		t.Xvalue = Xvalue or (Xmin+Xmax)/2
-		
 		t.Ymin = Ymin
-		
 		t.Ymax = Ymax
-		
 		t.Yvalue = Yvalue or (Ymin+Ymax)/2
-		
 		t.height = h or Ymax-Ymin
-		
 		t.slider = slider
-		
 		t.color = color
-		
 		t.width = w or Xmax - Xmin
-		
 		t.sliderX = sliderX
-		
 		t.sliderY = sliderY
-		
 		t.id = #self.__sliders + 1
-		
 		t.type = 'sliders2d'
-		
 		setmetatable(t, {__index = function(t,i) return self.slider2d[i] end})
-		
 		table.insert(self.__sliders2d, t)
-		
 		return self.__sliders2d[t.id]
-		
 	end
 
-	gui.newList = function(self, x, y, width, height, type, itemWidth, itemHeight) --objectWidth is actually height if type == "list"
-
+	gui.newList = function(self, x, y, width, height, type, itemWidth, itemHeight, scrollDir) --objectWidth is actually height if type == "list"
 		local t = {}
 		t.x = x
 		t.y = y
@@ -1082,9 +1119,10 @@ return function()
 		t.height = height 
 		t.type = type
 		t.itemWidth = type ~= "list" and itemWidth or width
-		t.itemHeight = type ~= "list" and itemHeight or itemWidth
-		t.scrollDir = "vertical"
+		t.itemHeight = type ~= "list" and itemtHeight or itemWidth
+		t.scrollDir = type ~= "list" and scrollDir or "vertical"
 		t.scrolling = 0
+		t.items = {}
 		t.id = #self.__lists + 1
 
 		t.items = {}
@@ -1094,171 +1132,98 @@ return function()
 		return t
 	end
 
-
 	gui.update = function(self, dt)
-
 		self.textLine.cursorTime = self.textLine.cursorTime + dt
-		
 		if self.textLine.cursorTime >= 1 then
-		
 			self.textLine.cursorTime = self.textLine.cursorTime - 1
-			
 		end
-		
 		local x, y = love.mouse.getPosition()
-		
 		local b = ''
-		
 		if love.mouse.isDown(1) then b = 1
-		
 		elseif love.mouse.isDown(2) then b = 2
-		
 		elseif love.mouse.isDown(3) then b = 3
-		
 		else b = nil
-		
 		end
-		
 		for i, v in pairs(self.__updateables) do
-		
 			for i, v in ipairs(self['__' .. v]) do
-			
 				v:update(b, x, y)
-				
 			end
-			
 		end
-		
 		if self.__delete then
-		
 			for i1, v in ipairs(self.__drawables) do
-			
 				local t = self['__'..v]
-				
 				for i2 = #t, 1, -1 do
-				
 					if t[i2]._delete then
-					
 						table.remove(t, i2)
-						
 					end
-					
 				end
-				
 			end
-			
 			self.__delete = false
-			
 		end
-		
 	end
-
-
 
 	gui.mousepressed = function(self, x, y, b)
-
 		for i, v in pairs(self.__clickables) do
-		
 			if v == 'textLines' then
-			
 				reset = function(v) v.focus = false end
-				
 			else
-			
 				reset = function() end
-				
 			end
-			
 			for i, v in ipairs(self['__' .. v]) do
-			
 				reset(v)
-				
-				if v.radius and dist(x, y, v.x, v.y) <= v.radius then
-				
+				if v:hover(x, y) then
 					v:clicked(b, x, y)
-				
-				elseif x >= v.x and x <= v.x+v.width and y >= v.y and y <= v.y+v.height then
-				
-					v:clicked(b, x, y)
-					
 				end
-				
 			end
-			
 		end
-		
 	end
 
-
+	gui.wheelmoved = function(self, x, y)
+		local mx, my = love.mouse.getPosition()
+		for i, v in ipairs(self.__clickables) do
+			for i, v in ipairs(self['__' .. v]) do
+				if v:hover(mx, my) then
+					v:wheelmoved(x, y)
+				end
+			end
+		end
+	end
 
 	gui.keypressed = function(self, key, scan)
-
 		for i, v in ipairs(self.__typeables) do
-		
 			for i, v in ipairs(self['__' .. v]) do
-			
 				if v.focus then
-				
 					self.textLine.cursorTime = 0
-					
 					if v:keypressed(key, scan) then break end
-					
 				end
-				
 			end
-			
 		end
-		
 	end
 
 
 	gui.textinput = function(self, char)
-
 		for i, v in ipairs(self.__typeables) do
-
 			for i, v in ipairs(self['__' .. v]) do
-
 				if v.focus then
-
 					self.textLine.cursorTime = 0
-
 					v:typed(char)
-
 				end
-
 			end
-
 		end
-
 	end
-
-
 
 	gui.draw = function(self)
-
 		local settings = {}
-		
 		setLine(1, 'smooth')
-		
 		for i1, v1 in pairs(self.__drawables) do
-		
 			for i2, v2 in ipairs(self['__' .. v1]) do
-				
-				print(v1)
 				v2:draw()
-				
 			end
-			
 		end
-		
 	end
 
-
-
 	gui.erase = function(self)
-
 		self:load()
-		
 	end
 
 	return gui

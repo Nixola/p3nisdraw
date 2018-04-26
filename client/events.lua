@@ -23,7 +23,10 @@ events.start = function(event)
   brushes = event.brushes
   for id, b in ipairs(brushes) do
   	local fdata = love.filesystem.newFileData(b.png64, b.name, "base64")
-  	b.img = love.graphics.newImage(fdata)
+    local imgD = love.image.newImageData(fdata)
+    imgD:mapPixel(function(r,g,b,a) return 255,255,255,b end)
+    b.img = love.graphics.newImage(imgD)
+  	--b.img = love.graphics.newImage(fdata)
   	brushes[id] = brush:new(b)
   end
 
@@ -33,8 +36,14 @@ events.start = function(event)
     for ii, line in pairs(peerLines) do
     	line.brush = brushes[line.brush]
       buffer[#buffer + 1] = line
+--<<<<<<< HEAD
       line.dirty = true
       --updateLineBatch(line)
+--[[=======
+      if not line.text and #line >= 4 then
+      	updateLineBatch(line)
+      end
+>>>>>>> 71be93c6d4d3a88fbd633a7d2e5b10e462608be6--]]
     end
   end
 
@@ -66,7 +75,9 @@ events.create = function(event)
     dirty = true,
     event.x, event.y
   }
-  if not line.text then
+
+  --if not line.text then
+  if line.brush then
     line.batch = love.graphics.newSpriteBatch(line.brush.img, line.len)
   end
   print("Line from", event.peerID, lines[event.peerID])

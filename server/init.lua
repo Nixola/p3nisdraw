@@ -22,6 +22,7 @@ buffer = {}
 
 brushes = {}
 brushes_cache = {}
+surfaces = {}
 
 config.address = config.address or "0.0.0.0"
 config.port    = config.port    or 42069
@@ -78,7 +79,7 @@ while true do
     local result
     local t = binser.d(event.data)[1]
     t.peerID = event.peer:connect_id()
-    print("Received event", t.type, "from", event.peer)
+    --print("Received event", t.type, "from", event.peer)
 
     if not events[t.type] then
       print("Received invalid event (" .. t.type .. "). Ignoring.")
@@ -119,7 +120,7 @@ while true do
 
   if send then
     for i, ev in ipairs(send) do
-      print("Sending event of type", "." .. ev.type .. ".")
+      --print("Sending event of type", "." .. ev.type .. ".")
       if ev.broadcast then
         host:broadcast(binser.s(ev))
       else

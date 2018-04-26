@@ -12,3 +12,12 @@
 * * Tilde opens a messagebox on bottom showing logs and providing not-printed chat
 * * On crash/disconnect, return to connect screen; blur/grey the canvas and put it on background
 * * ~~Holding right-click displays a color picker, releasing chooses a colour;~~ might want to toggle instead of hold
+* * ~~Add brushes~~
+* * Include actual size and stepping information on brushes, maybe random/sequential rotation as well? might be cool
+* * Make brushes scale on client
+* * Make brushes scale on server
+
+## makebrush
+* rework cli arguments; png file is mandatory, everything else is ``--option value``
+* make tool check/convert png file automatically
+* have it prompt for missing info

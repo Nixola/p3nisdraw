@@ -3,12 +3,35 @@ local events = {}
 local ffi = require "ffi"
 local libpng = require "libpng"
 
-local cairo = require "lgi".cairo
-local surface = cairo.ImageSurface.create("ARGB32", 1280, 720)
-local cr = cairo.Context.create(surface)
-cr:select_font_face("Vera")
+local cairo = require "cairo"
+local surface = cairo.image_surface("argb32", 1280, 720)
+local cr = surface:context()
+cr:font_face("Vera")
 local smooth = require "smooth"
 local base64 = require "base64"
+
+local pr = function(s, stride)
+	local i = 0
+    for c in s:gmatch(".") do
+    	if i == stride then
+    		print()
+    		i = 0
+    	end
+    	i = i + 1
+    	io.write(string.format("%02X ", c:byte()))
+    	--if i%4 == 0 then
+    	--	io.write " "
+      --end
+    end
+    print()
+    print()
+end
+
+local pr_sur = function(s)
+  print("Printing surface with stride", s:stride())
+  local str = ffi.string(s:data(), s:height()*s:stride())
+  pr(str, s:stride())
+end
 
 -- event handlers return a table of events. Every event in the table contains a boolean, "broadcast",
 -- which specifies whether the returned event should be broadcast to everyone or not. If not, it's just
@@ -46,28 +69,25 @@ events.create = function(event)
     if line.endTime and (time - line.endTime > (tonumber(config.endTime) or 120)) then
       local t = line
       returns[#returns + 1] = {type = "squash", lineID = line.lineID, peerID = line.peerID, broadcast = true}
-      cr:new_path()
       if line.text then --it's text
-        cr:set_font_size(line.size)
+      	cr:new_path()
+        cr:font_size(line.size)
         local fextents = cr:font_extents()
         cr:move_to(t[1], t[2] + fextents.ascent)
-        cr:set_source_rgba(unpack(line.color))
+        cr:rgba(unpack(line.color))
         cr:text_path(line.text)
         cr:fill()
       else
-        cr:move_to(t[1], t[2])
-        if #line >= 4 then
-          t = smooth(line, line.smoothness)
-        end
-        for i = 2, #t / 2 do
-          local x, y = t[i * 2 - 1], t[i * 2]
-          cr:line_to(x, y)
-        end
-
-        cr.line_width = line.size
-        cr.line_cap = "ROUND"
-        cr:set_source_rgba(unpack(line.color))
-        cr:stroke()
+        local steps = smooth(line, line.smoothness)
+      	steps = require "brush".points(nil, steps)
+      	local b = brushes[line.brush]
+      	print("Drawing", b.id, surfaces[b], b, cr:operator())
+        --let's change the color of the brush
+        cr:rgb(line.color[1], line.color[2], line.color[3])
+      	for i = 1, #steps/2 do
+      	  local x, y = steps[i*2-1], steps[i*2]
+      	  cr:mask(surfaces[b], x, y)
+      	end
       end
 
       table.remove(buffer, i)
@@ -175,12 +195,14 @@ events.connect = function(event)
     local header = libpng.load(t).file
     if header.w > 256 or header.h > 256 then
       print("A brush exceeded max size; ignoring")
-    elseif header.channels ~= "ga" then
+    elseif header.channels ~= "g" then
       print("A brush has invalid pixel format; ignoring")
     else
       t.header_only = false
+      t.accept = {"g"}
       local image = libpng.load(t)
       local str = ffi.string(image.data, image.size)
+      print("Brush pixel format", image.pixel, "stride", image.stride)
       if brushes_cache[str] then -- brush is already in memory
         print("Received a brush in memory")
       else
@@ -189,6 +211,21 @@ events.connect = function(event)
         brushes[id] = b
         b.id = id
         newBrushes[id] = b
+        local data = str
+        --pr(str, 15)
+        --data = data:gsub("(.)(.)(.)(.)", "")
+        surfaces[b] = cairo.image_surface("a8", image.w, image.h)
+        --fix the stride differences
+        local dstride = surfaces[b]:stride() - image.stride
+        local pattern = ("(%s)"):format(("."):rep(image.stride))
+        local substit = string.format("%%1%s", ('0'):rep(dstride)) -- padding with zeroes. using actual null bytes fucked stuff up.
+        data = data:gsub(pattern, substit)
+        ffi.copy(surfaces[b]:data(), data)
+        surfaces[b]:mark_dirty()
+        surfaces[b]:save_png("/tmp/testbrush.png")
+        print("W", image.w, "H", image.h, "stride", image.stride)
+        --pr_sur(surfaces[b])
+        print("Brush", id, surfaces[b], b)
       end
     end
   end
@@ -197,12 +234,12 @@ events.connect = function(event)
   lines[peerID] = {}
 
   local filename = os.tmpname()
-  surface:write_to_png(filename)
+  surface:save_png(filename)
 
   local f = io.open(filename, "r")
   local png = f:read "*a"
   f:close()
-  os.remove(filename)
+  --os.remove(filename)
 
   ev.png = png
 

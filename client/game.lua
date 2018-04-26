@@ -232,6 +232,9 @@ game.keypressed = function(self, key, scan)
   elseif scan == "up" or scan == "down" then
   	smoothness = math.max(0, smoothness + (scan == "up" and 1 or -1))
   	print("Smoothness is now", smoothness)
+  elseif scan == "pageup" or scan == "pagedown" then
+    brush = (brush - 1 + (scan == "pageup" and 1 or -1)) % #brushes + 1
+    print("Swapped brush to", brush)
   end
 
   if scan == "return" and not textbox then
@@ -247,7 +250,7 @@ game.keypressed = function(self, key, scan)
       self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r * 255, g * 255, b * 255, a * 255/4
   		self.x, self.y = love.mouse.getPosition()
       self.x = math.floor(self.x + 8)
-      self.y = math.floor(self.y - self.font[self.size]:getHeight()/2)
+      self.y = math.floor(self.y - gui.font[self.size]:getHeight()/2)
       local t = {type = "update", lineID = textID, x = self.x, y = self.y, size = self.size, color = {r, g, b, a}, text = self.text}
       if self.text:match("^/") then return end
       states.game.server:send(binser.s(t))
@@ -290,7 +293,7 @@ game.keypressed = function(self, key, scan)
         self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r * 255, g * 255, b * 255, a * 255
         self.x, self.y = love.mouse.getPosition()
         self.x = math.floor(self.x + 8)
-        self.y = math.floor(self.y - self.font[self.size]:getHeight()/2)
+        self.y = math.floor(self.y - gui.font[self.size]:getHeight()/2)
         local t = {type = "finish", lineID = textID, x = self.x, y = self.y, size = self.size, color = {r, g, b, a}, text = self.text}
         states.game.server:send(binser.s(t))
       end

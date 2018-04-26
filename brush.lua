@@ -1,6 +1,7 @@
 local brushes = {}
 
 brushes.points = function(self, line)
+	self = self or {step=3} --HACK
 	assert(#line >= 4, "Invalid line")
 	local lengths = {[0] = 0}
 	local length = 0
