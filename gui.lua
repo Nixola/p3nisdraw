@@ -774,6 +774,52 @@ return function()
 
 		--]]
 
+
+	--#------#--####--#####--####--
+	--#---------#-------#----#-----
+	--#------#--####----#----####--
+	--#------#-----#----#-------#--
+	--#####--#--####----#----####--
+
+	--gui.newList = function(self, x, y, width, height, type, objectWidth, objectHeight) --objectWidth is actually height if type == "list"
+	gui.list = {type = "list", itemHeight = 16, color = {background = grey.c2, border = grey.c7, button = grey.c3}}
+	gui.list.pushItem = function(self, name, image, func)
+		local i = {name = name, image = image, func = func}
+		self.items[#self.items+1] = i
+	end
+
+	gui.list.draw = function(self)
+		love.graphics.setColor(self.color.background)
+		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+
+		love.graphics.setScissor(self.x, self.y, self.width, self.height)
+		local gridW = math.floor(self.width / self.itemWidth or self.width)
+		local padding = (self.width - self.itemWidth * gridW) / (gridW + 1)
+
+		love.graphics.setColor(self.color.button)
+		for i, item in ipairs(self.items) do
+			local dx = padding + ((i-1)%gridW) * (self.itemWidth + padding)
+			local dy = padding + math.floor((i - 1) / gridW) * (self.itemHeight + padding) - scrolling
+
+			love.graphics.rectangle("fill", self.x + dx, self.y + dy, self.itemWidth, self.itemHeight)
+		end
+
+		love.graphics.setColor(white)
+		for i, item in ipairs(self.items) do
+			local dx = padding + ((i-1)%gridW) * (self.itemWidth + padding) + self.itemWidth/2 - self.image:getWidth()/2
+			local dy = padding + math.floor((i - 1) / gridW) * (self.itemHeight + padding) - scrolling + self.itemHeight/2 - self.image.getHeight()/2
+
+			love.graphics.draw(item.image, self.x + dx, self.y + dy)
+		end
+
+		love.graphics.setScissor()
+		love.graphics.setColor(self.color.border)
+		love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
+	end
+
+
+
+
 		
 	--NEW!
 
@@ -1027,7 +1073,7 @@ return function()
 		
 	end
 
-	gui.newList = function(self, x, y, width, height, type, objectWidth, objectHeight) --objectWidth is actually height if type == "list"
+	gui.newList = function(self, x, y, width, height, type, itemWidth, itemHeight) --objectWidth is actually height if type == "list"
 
 		local t = {}
 		t.x = x
@@ -1035,11 +1081,13 @@ return function()
 		t.width = width
 		t.height = height 
 		t.type = type
-		t.objectWidth = type ~= "list" and objectWidth or nil
-		t.objectHeight = type ~= "list" and objectHeight or objectWidth
+		t.itemWidth = type ~= "list" and itemWidth or width
+		t.itemHeight = type ~= "list" and itemHeight or itemWidth
 		t.scrollDir = "vertical"
 		t.scrolling = 0
 		t.id = #self.__lists + 1
+
+		t.items = {}
 
 		setmetatable(t, {__index = self.list})
 		self.__lists[t.id] = t
@@ -1195,7 +1243,8 @@ return function()
 		for i1, v1 in pairs(self.__drawables) do
 		
 			for i2, v2 in ipairs(self['__' .. v1]) do
-			
+				
+				print(v1)
 				v2:draw()
 				
 			end
