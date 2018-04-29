@@ -174,6 +174,9 @@ game.update = function(self, dt)
   	gui:update(dt)
   	textbox:update(dt)
   end
+  if interface.shown then
+    interface:update(dt)
+  end
   if tempLine and tempLine.update then
   	tempLine:update(dt, size, r, g, b, a)
   end
@@ -402,6 +405,10 @@ end
 
 
 game.wheelmoved = function(self, dx, dy)
+  if interface.shown then
+    interface:wheelmoved(dx, dy)
+    return
+  end
   size = math.max(1, size + dy)
 end
 

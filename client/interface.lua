@@ -13,7 +13,6 @@ interface.spawn = function(self)
 	local items = {}
 	local active = false
 	for i, v in pairs(brushes) do
-		--for ii, vv in pairs(v) do print(ii, vv) end
 		items[#items+1] = {img = v.img, text = v.name, active = v.active}
 		active = active or v.active
 	end
@@ -56,6 +55,14 @@ interface.draw = function(self)
 		end
 	end
 	self.gui:draw()
+end
+
+interface.update = function(self, dt)
+	self.gui:update(dt)
+end
+
+interface.wheelmoved = function(self, dx, dy)
+	self.gui:wheelmoved(dx, dy)
 end
 
 

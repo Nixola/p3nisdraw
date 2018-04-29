@@ -2,7 +2,7 @@ local utf8 = require "utf8"
 local UTF8 = require "UTF8"
 
 local clamp = function(min, X, max)
-        if X < min then return max end
+        if X < min then return min end
         if X > max then return max end
         return X
 end
@@ -926,15 +926,17 @@ return function()
 	end
 
 	gui.list.wheelmoved = function(self, x, y)
-		self.scrollingNext = clamp(0, self.scrollingNext + y * 40, self.overflow)
+		self.scrollingNext = clamp(0, self.scrollingNext - y * 40, self.overflow - self.height + self.padding*2)
 	end
 
-	gui.list.update = function() end
+	gui.list.update = function(self, dt)
+		self.scrolling = (self.scrolling + self.scrollingNext) / 2
+	end
 
 	gui.list.draw = function(self) 
 		love.graphics.setColor(self.color.background)
 		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
-		--love.graphics.setScissor(self.x, self.y, self.width, self.height)
+		love.graphics.setScissor(self.x, self.y, self.width, self.height)
 		if self.scrollDir == "vertical" then
 			local itemsInRow = math.floor((self.width - self.padding) / (self.itemWidth + self.padding))
 			for i, v in ipairs(self.items) do
@@ -1146,6 +1148,7 @@ return function()
 		t.itemHeight = type ~= "list" and itemHeight or itemWidth
 		t.scrollDir = type ~= "list" and scrollDir or "vertical"
 		t.scrolling = 0
+		t.scrollingNext = 0
 		t.items = {}
 		t.id = #self.__lists + 1
 
