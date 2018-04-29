@@ -364,7 +364,7 @@ return function()
 	end
 
 
-	gui.button.update = function(self, b, x, y)
+	gui.button.update = function(self, x, y, b)
 		if x >= self.x and x <= self.x+self.width and y >= self.y and y <= self.y+self.height and b == 1 then
 			self.color.center = self.color.down
 		else
@@ -563,7 +563,7 @@ return function()
 	end
 
 
-	gui.textLine.clicked = function(self, b, x, y)
+	gui.textLine.clicked = function(self, x, y, b)
 
 		if b == 1 then
 		
@@ -871,11 +871,18 @@ return function()
 	end
 
 	gui.list.hover = function(self, x, y)
+		print("hovering?", x, y, self.x, self.y)
 		return AABB(self.x, self.y, self.width, self.height, x, y, 1,1)
 	end
 
 	gui.list.setCallback = function(self, func)
 		self.callback = func
+	end
+
+	gui.list.clicked = function(self, x, y, b)
+		local itemX = (x - self.x) / self.itemWidth
+		local itemY = (y - self.y + self.scrolling) / self.itemHeight
+		print(itemX, itemY)
 	end
 
 	gui.list.updateOverflow = function(self)
@@ -1151,7 +1158,7 @@ return function()
 		end
 		for i, v in pairs(self.__updateables) do
 			for i, v in ipairs(self['__' .. v]) do
-				v:update(b, x, y)
+				v:update(x, y, b)
 			end
 		end
 		if self.__delete then
@@ -1177,7 +1184,7 @@ return function()
 			for i, v in ipairs(self['__' .. v]) do
 				reset(v)
 				if v:hover(x, y) then
-					v:clicked(b, x, y)
+					v:clicked(x, y, b)
 				end
 			end
 		end
