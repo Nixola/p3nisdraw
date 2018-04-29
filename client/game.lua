@@ -216,7 +216,6 @@ game.draw = function(self, snap)
   end
 
   if interface.shown then
-    print("WOW")
     interface:draw()
   end
 end
