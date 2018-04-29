@@ -864,14 +864,13 @@ return function()
 
 
 =======--]]
-	gui.list = {padding = 2, color = {border = grey.c7, background = grey.c1, items = grey.c4, text = white}}
+	gui.list = {padding = 2, color = {border = grey.c7, background = grey.c1, item = grey.c4, active = grey.c5, text = white}}
 	gui.list.delete = function(self)
 		self._delete = true
 		gui.__delete = true
 	end
 
 	gui.list.hover = function(self, x, y)
-		print("hovering?", x, y, self.x, self.y)
 		return AABB(self.x, self.y, self.width, self.height, x, y, 1,1)
 	end
 
@@ -880,9 +879,22 @@ return function()
 	end
 
 	gui.list.clicked = function(self, x, y, b)
-		local itemX = (x - self.x) / self.itemWidth
-		local itemY = (y - self.y + self.scrolling) / self.itemHeight
-		print(itemX, itemY)
+		local itemX = math.ceil((x - self.x - self.padding) / (self.itemWidth + self.padding))
+		local itemY = math.ceil((y - self.y + self.scrolling - self.padding) / (self.itemHeight + self.padding))
+		local itemN = itemX + (itemY - 1) * math.floor(self.width / self.itemWidth)
+		if self.callback then
+			self.callback(itemX, itemY, itemN)
+		end
+	end
+
+	gui.list.setActive = function(self, n)
+		if n == math.floor(n) and n > 0 and n <= #self.items then
+			if self.active then
+				self.items[self.active].active = false
+			end
+			self.items[n].active = true
+			self.active = n
+		end
 	end
 
 	gui.list.updateOverflow = function(self)
@@ -931,7 +943,7 @@ return function()
 
 				local dx = ix * (self.padding + self.itemWidth) + self.padding
 				local dy = iy * (self.padding + self.itemHeight) + self.padding
-				love.graphics.setColor(self.color.items)
+				love.graphics.setColor(i == self.active and self.color.active or self.color.item)
 				love.graphics.rectangle("fill", self.x + dx, self.y + dy - self.scrolling, self.itemWidth, self.itemHeight)
 				love.graphics.setColor(white)
 				local imageWidth, imageHeight = v.img:getDimensions()
@@ -1131,13 +1143,16 @@ return function()
 		t.height = height 
 		t.type = type
 		t.itemWidth = type ~= "list" and itemWidth or width
-		t.itemHeight = type ~= "list" and itemtHeight or itemWidth
+		t.itemHeight = type ~= "list" and itemHeight or itemWidth
 		t.scrollDir = type ~= "list" and scrollDir or "vertical"
 		t.scrolling = 0
 		t.items = {}
 		t.id = #self.__lists + 1
 
 		t.items = {}
+
+		local nItems = type ~= "list" and math.floor(width / itemWidth) or math.floor(height / itemHeight)
+		t.padding = type ~= "list" and (width - nItems * itemWidth) / (nItems + 1) or (height - nItems * itemHeight) / (nItems + 1)
 
 		setmetatable(t, {__index = self.list})
 		self.__lists[t.id] = t

@@ -64,6 +64,19 @@ game.connect = function(self, nick, address, port)
 	return self.host
 end
 
+game.setBrush = function(self, b)
+  b = b or brush
+  if b == math.floor(b) and b > 0 and b <= #brushes then --it's a valid brush
+    brushes[brush].active = false
+    print("Switching to brush", b)
+    brush = b
+    brushes[brush].active = true
+    if interface.brushList then
+      interface.brushList:setActive(b)
+    end
+  end
+end
+
 
 game.drawLine = function(self, line, dbg)
 
@@ -319,6 +332,8 @@ game.keypressed = function(self, key, scan)
       states.game.server:send(binser.s(t2))
       textbox:delete()
       textbox = nil
+    elseif colorPicker then
+      colorPicker = nil
     else
       if interface.shown then
         interface:hide()
@@ -331,6 +346,10 @@ end
 
 
 game.mousepressed = function(self, x, y, butt)
+  if interface.shown then -- swallow the click
+    interface.gui:mousepressed(x, y, butt)
+    return
+  end
   if butt == 1 then
   	if not tempLine then-- create a line!
 	    lineID = nextID

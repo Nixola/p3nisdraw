@@ -2,6 +2,7 @@ local interface = {}
 
 
 interface.spawn = function(self)
+	local game = require "game"
 	self.gui = require "gui"()
 	local iw, ih = 56, 64
 	local listWidth = iw*2 + 4*3 -- elements, padding
@@ -10,11 +11,19 @@ interface.spawn = function(self)
 	self.brushList = self.gui:newList(1280 - listWidth - 8, 96, listWidth, listHeight, "grid", iw, ih)
 	self.brushList.padding = 4
 	local items = {}
+	local active = false
 	for i, v in pairs(brushes) do
-		for ii, vv in pairs(v) do print(ii, vv) end
-		items[#items+1] = {img = v.img, text = v.name}
+		--for ii, vv in pairs(v) do print(ii, vv) end
+		items[#items+1] = {img = v.img, text = v.name, active = v.active}
+		active = active or v.active
 	end
 	self.brushList:insert(items)
+	if not active then -- did no one update this shit?
+		game:setBrush()
+	end
+	self.brushList:setCallback(function(x, y, n)
+		game:setBrush(n)
+	end)
 end
 
 interface.show = function(self)
