@@ -9,6 +9,7 @@ local cr = surface:context()
 cr:font_face("Vera")
 local smooth = require "smooth"
 local base64 = require "base64"
+local brush = require "brush"
 
 local pr = function(s, stride)
 	local i = 0
@@ -79,8 +80,8 @@ events.create = function(event)
         cr:fill()
       else
         local steps = smooth(line, line.smoothness)
-      	steps = require "brush".points(nil, steps)
-      	local b = brushes[line.brush]
+        local b = brushes[line.brush]
+      	steps = b:points(steps)
       	print("Drawing", b.id, surfaces[b], b, cr:operator())
         --let's change the color of the brush
         cr:rgb(line.color[1], line.color[2], line.color[3])
@@ -208,6 +209,9 @@ events.connect = function(event)
       else
         brushes_cache[str] = true
         local id = #brushes + 1
+        b.w = image.w
+        b.h = image.h
+        b = brush:new(b)
         brushes[id] = b
         b.id = id
         newBrushes[id] = b
@@ -223,7 +227,6 @@ events.connect = function(event)
         ffi.copy(surfaces[b]:data(), data)
         surfaces[b]:mark_dirty()
         surfaces[b]:save_png("/tmp/testbrush.png")
-        print("W", image.w, "H", image.h, "stride", image.stride)
         --pr_sur(surfaces[b])
         print("Brush", id, surfaces[b], b)
       end

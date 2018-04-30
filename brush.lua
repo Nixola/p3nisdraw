@@ -1,7 +1,6 @@
 local brushes = {}
 
 brushes.points = function(self, line)
-	self = self or {step=3} --HACK
 	assert(#line >= 4, "Invalid line")
 	local lengths = {[0] = 0}
 	local length = 0
@@ -26,8 +25,13 @@ brushes.points = function(self, line)
 		local px, py
 		px = x2 * portion + x1 * (1-portion)
 		py = y2 * portion + y1 * (1-portion)
-		points[#points+1] = px
-		points[#points+1] = py
+		if self.hard then
+			points[#points+1] = math.floor(px) + (self.w % 1)/ 2
+			points[#points+1] = math.floor(py) + (self.h % 1)/ 2
+		else
+			points[#points+1] = px
+			points[#points+1] = py
+		end
 	end
 	return points
 end
@@ -40,9 +44,10 @@ end
 	return t
 end--]]
 brushes.new = function(self, t)
-	t.step = 3
-	t.w = t.img:getWidth()
-	t.h = t.img:getHeight()
+	t.step = t.step or 3
+	t.w = t.w or t.img:getWidth()
+	t.h = t.h or t.img:getHeight()
+	t.size = t.size or math.max(t.w, t.h)
 	return setmetatable(t, {__index = self})
 end
 

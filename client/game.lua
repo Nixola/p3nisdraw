@@ -47,7 +47,7 @@ local updateLineBatch = function(line)
     line.batch:clear()
   end
   for i = 1, #b/2 do
-    line.batch:add(b[i*2-1] - line.brush.w/2, b[i*2] - line.brush.h / 2)
+    line.batch:add(b[i*2-1] - math.ceil(line.brush.w/2), b[i*2] - math.ceil(line.brush.h / 2))
   end
 end
 
