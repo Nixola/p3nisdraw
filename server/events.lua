@@ -87,7 +87,10 @@ events.create = function(event)
         cr:rgb(line.color[1], line.color[2], line.color[3])
       	for i = 1, #steps/2 do
       	  local x, y = steps[i*2-1], steps[i*2]
+          local pop = cr:matrix()
+          cr:scale_around(x, y, line.size/b.size)
       	  cr:mask(surfaces[b], x, y)
+          cr:matrix(pop)
       	end
       end
 

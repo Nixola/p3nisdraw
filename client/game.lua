@@ -47,7 +47,8 @@ local updateLineBatch = function(line)
     line.batch:clear()
   end
   for i = 1, #b/2 do
-    line.batch:add(b[i*2-1] - math.ceil(line.brush.w/2), b[i*2] - math.ceil(line.brush.h / 2))
+    --line.batch:add(b[i*2-1] - math.ceil(line.brush.w/2), b[i*2] - math.ceil(line.brush.h / 2))
+    line.batch:add(b[i*2-1], b[i*2], 0, line.size / line.brush.size, line.size / line.brush.size, math.ceil(line.brush.w/2), math.ceil(line.brush.h/2))
   end
 end
 
@@ -74,6 +75,7 @@ game.setBrush = function(self, b)
     if interface.brushList then
       interface.brushList:setActive(b)
     end
+    size = brushes[brush].size
   end
 end
 
