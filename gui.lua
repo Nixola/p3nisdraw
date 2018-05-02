@@ -91,7 +91,7 @@ return function()
 	-----------------LABELS---------------------
 		
 	gui.label = {label = '', color = white, size = 12}
-	--setmetatable(gui.label, gui.mt)
+	setmetatable(gui.label, gui.mt)
 
 	gui.label.delete = function(self)
 		self._delete = true
@@ -189,7 +189,7 @@ return function()
 	------------------------------CHECKBOXES--------------------------------
 
 	gui.checkbox = {value = false, width = 12, height = 12, padding = 2, label = '', color = {border = white, check = white, label = white}, size = 12}
-	--setmetatable(gui.checkbox, gui.mt)
+	setmetatable(gui.checkbox, gui.mt)
 
 	gui.checkbox.delete = function(self)
 		self._delete = true
@@ -341,7 +341,7 @@ return function()
 	---------------------BUTTONS-----------------------
 
 	gui.button = {label = '', padding = 2, color = {border = grey.c6, center = grey.c4, down = grey.c2, up = grey.c4, label = white}, size = 12, clicked = function() end}
-	--setmetatable(gui.button, gui.mt)
+	setmetatable(gui.button, gui.mt)
 	gui.button.delete = function(self)
 		self._delete = true
 		gui.__delete = true
@@ -492,7 +492,7 @@ return function()
 	---------------------------TEXTLINES-------------------------
 
 	gui.textLine = {text = '', padding = 2, color = {border = grey.c6, center = grey.c4, text = white}, size = 12, enter = function() end, cursorTime = 0}
-	--setmetatable(gui.textLine, gui.mt)
+	setmetatable(gui.textLine, gui.mt)
 	gui.textLine.delete = function(self)
 		self._delete = true
 		gui.__delete = true
@@ -815,55 +815,12 @@ return function()
 		
 	end
 
-		--]]
-
---[[<<<<<<< HEAD
-
 	--#------#--####--#####--####--
 	--#---------#-------#----#-----
 	--#------#--####----#----####--
 	--#------#-----#----#-------#--
 	--#####--#--####----#----####--
 
-	--gui.newList = function(self, x, y, width, height, type, objectWidth, objectHeight) --objectWidth is actually height if type == "list"
-	gui.list = {type = "list", itemHeight = 16, color = {background = grey.c2, border = grey.c7, button = grey.c3}}
-	gui.list.pushItem = function(self, name, image, func)
-		local i = {name = name, image = image, func = func}
-		self.items[#self.items+1] = i
-	end
-
-	gui.list.draw = function(self)
-		love.graphics.setColor(self.color.background)
-		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
-
-		love.graphics.setScissor(self.x, self.y, self.width, self.height)
-		local gridW = math.floor(self.width / self.itemWidth or self.width)
-		local padding = (self.width - self.itemWidth * gridW) / (gridW + 1)
-
-		love.graphics.setColor(self.color.button)
-		for i, item in ipairs(self.items) do
-			local dx = padding + ((i-1)%gridW) * (self.itemWidth + padding)
-			local dy = padding + math.floor((i - 1) / gridW) * (self.itemHeight + padding) - scrolling
-
-			love.graphics.rectangle("fill", self.x + dx, self.y + dy, self.itemWidth, self.itemHeight)
-		end
-
-		love.graphics.setColor(white)
-		for i, item in ipairs(self.items) do
-			local dx = padding + ((i-1)%gridW) * (self.itemWidth + padding) + self.itemWidth/2 - self.image:getWidth()/2
-			local dy = padding + math.floor((i - 1) / gridW) * (self.itemHeight + padding) - scrolling + self.itemHeight/2 - self.image.getHeight()/2
-
-			love.graphics.draw(item.image, self.x + dx, self.y + dy)
-		end
-
-		love.graphics.setScissor()
-		love.graphics.setColor(self.color.border)
-		love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
-	end
-
-
-
-=======--]]
 	gui.list = {padding = 2, color = {border = grey.c7, background = grey.c1, item = grey.c4, active = grey.c5, text = white}}
 	gui.list.delete = function(self)
 		self._delete = true
@@ -964,7 +921,6 @@ return function()
 		love.graphics.setColor(self.color.border)
 		love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 	end
--->>>>>>> 71be93c6d4d3a88fbd633a7d2e5b10e462608be6
 
 		
 	--NEW!
@@ -983,7 +939,8 @@ return function()
 		t.size = s
 		t.id = #self.__checkboxes + 1
 		t.type = 'checkboxes'
-		setmetatable(t, {__index = function(t, i) return self.checkbox[i]end})
+		--setmetatable(t, {__index = function(t, i) return self.checkbox[i]end})
+		setmetatable(t, {__index = self.checkbox})
 		table.insert(self.__checkboxes, t)
 		return self.__checkboxes[t.id]
 	end
@@ -1008,7 +965,8 @@ return function()
 		
 		t.type = 'labels'
 		
-		setmetatable(t, {__index = function(t,i) return self.label[i] end})
+		--setmetatable(t, {__index = function(t,i) return self.label[i] end})
+		setmetatable(t, {__index = self.label})
 		
 		table.insert(self.__labels, t)
 		
@@ -1058,7 +1016,8 @@ return function()
 			
 		end
 		
-		setmetatable(t, {__index = function(t,i) return self.button[i] end})
+		--setmetatable(t, {__index = function(t,i) return self.button[i] end})
+		setmetatable(t, {__index = self.button})
 		
 		table.insert(self.__buttons, t)
 		
@@ -1082,7 +1041,8 @@ return function()
 		t.width = w or max
 		t.id = #self.__sliders + 1
 		t.type = 'sliders'
-		setmetatable(t, {__index = function(t,i) return self.slider[i] end})
+		--setmetatable(t, {__index = function(t,i) return self.slider[i] end})
+		setmetatable(t, {__index = self.slider})
 		table.insert(self.__sliders, t)
 		return self.__sliders[t.id]
 	end
@@ -1108,7 +1068,8 @@ return function()
 				t.color[i][3] = gui.textLine.color[i][3]
 			end
 		end
-		setmetatable(t, {__index = function(t,i) return self.textLine[i] end})
+		--setmetatable(t, {__index = function(t,i) return self.textLine[i] end})
+		setmetatable(t, {__index = self.textLine})
 		t.printX = t.x + 1 + t.padding
 		table.insert(self.__textLines, t)
 		return self.__textLines[t.id]
@@ -1132,7 +1093,8 @@ return function()
 		t.sliderY = sliderY
 		t.id = #self.__sliders + 1
 		t.type = 'sliders2d'
-		setmetatable(t, {__index = function(t,i) return self.slider2d[i] end})
+		--setmetatable(t, {__index = function(t,i) return self.slider2d[i] end})
+		setmetatable(t, {__index = self.slider2d})
 		table.insert(self.__sliders2d, t)
 		return self.__sliders2d[t.id]
 	end

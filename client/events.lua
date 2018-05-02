@@ -38,14 +38,7 @@ events.start = function(event)
     for ii, line in pairs(peerLines) do
     	line.brush = brushes[line.brush]
       buffer[#buffer + 1] = line
---<<<<<<< HEAD
       line.dirty = true
-      --updateLineBatch(line)
---[[=======
-      if not line.text and #line >= 4 then
-      	updateLineBatch(line)
-      end
->>>>>>> 71be93c6d4d3a88fbd633a7d2e5b10e462608be6--]]
     end
   end
 
@@ -154,6 +147,7 @@ events.finish = function(event)
   end
 
   local line = lines[event.peerID][event.lineID]
+  print("Finishing line", event.peerID, event.lineID, line)
 
   line.endTime = event.endTime
 

@@ -1,7 +1,7 @@
 local brushes = {}
 
 brushes.points = function(self, line)
-	assert(#line >= 4, "Invalid line")
+	assert(#line >= 2, "Invalid line")
 	local lengths = {[0] = 0}
 	local length = 0
 	for i = 1, #line/2-1 do
@@ -14,7 +14,11 @@ brushes.points = function(self, line)
 
 	local points = {}
 	local segment = 1
-	for t = 0, 1, self.step / length do
+	local step = self.step / length
+
+	points[1], points[2] = line[1], line[2]
+
+	for t = step, 1, step do
 		while t*length > lengths[segment] do
 			segment = segment + 1
 		end

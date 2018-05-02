@@ -99,6 +99,13 @@ while true do
     peers_by.id[peerID].nick = ""
     local ev = {type = "disconnect", peerID = peerID, broadcast = true}
     send = {ev}
+
+    -- finish stagnant lines
+    local endTime = os.time()
+    for id, line in pairs(lines[peerID]) do
+      local finishEvent = {peerID = peerID, endTime = endTime, lineID = id}
+      send[#send + 1] = finishEvent
+    end
   end
 
   if time ~= otime then --broadcast a latency update

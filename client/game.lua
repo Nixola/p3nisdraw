@@ -29,7 +29,7 @@ local randomRGB = love.math.newRandomGenerator()
 cacheRGB = setmetatable({}, {__index = function(self, k) randomRGB:setSeed(tonumber(k)); self[k] = {randomRGB:random(256)-1, randomRGB:random(256)-1, randomRGB:random(256)-1}; return self[k]; end})
 
 local updateLineBatch = function(line)
-  if not line.dirty or #line < 4 then return end
+  if not line.dirty or #line < 2 then return end
   line.dirty = false
   local t = smooth(line, line.smoothness)
   print("Brushing line", #t)
@@ -113,13 +113,13 @@ game.drawLine = function(self, line, dbg)
     end
     love.graphics.setColor(cacheRGB[line.peerID])
     love.graphics.setLineWidth(1)
-    love.graphics.rectangle("line", minX - line.size - 0.5, minY - line.size - 0.5, maxX - minX + line.size*2, maxY - minY + line.size*2)
+    love.graphics.rectangle("line", minX - line.size/2 - 0.5, minY - line.size/2 - 0.5, maxX - minX + line.size, maxY - minY + line.size)
     love.graphics.setFont(gui.font[10])
     local nick = peers_by.id[line.peerID].nick
     if nick == "" then
     	nick = "ID:" .. line.peerID
     end
-    love.graphics.print(nick, math.floor(minX - line.size), math.floor(minY - line.size))
+    love.graphics.print(nick, math.floor(minX - line.size/2), math.floor(minY - line.size / 2 - 12))
   end
 
 end
