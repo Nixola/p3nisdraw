@@ -85,11 +85,18 @@ events.create = function(event)
       	print("Drawing", b.id, surfaces[b], b, cr:operator())
         --let's change the color of the brush
         cr:rgb(line.color[1], line.color[2], line.color[3])
+        local scale = line.size / b.size
+        local ox, oy = b.w / 2, b.h / 2
+        if b.hard then
+          ox, oy = math.floor(ox), math.floor(oy)
+        end
       	for i = 1, #steps/2 do
       	  local x, y = steps[i*2-1], steps[i*2]
           local pop = cr:matrix()
-          cr:scale_around(x, y, line.size/b.size)
-      	  cr:mask(surfaces[b], x, y)
+          --cr:translate(x, y)
+          cr:scale(scale)
+      	  --cr:mask(surfaces[b], -b.w/2, -b.h/2)
+          cr:mask(surfaces[b], x / scale - ox, y / scale - oy)
           cr:matrix(pop)
       	end
       end

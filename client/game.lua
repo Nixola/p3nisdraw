@@ -46,9 +46,14 @@ local updateLineBatch = function(line)
   else
     line.batch:clear()
   end
+  local scale = line.size / line.brush.size
+  local ox, oy = line.brush.w*scale/2, line.brush.h*scale/2
+  if line.brush.hard then
+    ox, oy = math.floor(ox), math.floor(oy)
+  end
   for i = 1, #b/2 do
     --line.batch:add(b[i*2-1] - math.ceil(line.brush.w/2), b[i*2] - math.ceil(line.brush.h / 2))
-    line.batch:add(b[i*2-1], b[i*2], 0, line.size / line.brush.size, line.size / line.brush.size, math.ceil(line.brush.w/2), math.ceil(line.brush.h/2))
+    line.batch:add(b[i*2-1] - ox, b[i*2] - oy, 0, line.size / line.brush.size, line.size / line.brush.size)
   end
 end
 
@@ -77,6 +82,10 @@ game.setBrush = function(self, b)
     end
     size = brushes[brush].size
   end
+end
+
+game.setSize = function(self, s) -- hack
+  size = s
 end
 
 
@@ -187,7 +196,9 @@ end
 
 game.draw = function(self, snap)
   love.graphics.setColor(255, 255, 255)
+  love.graphics.setBlendMode("alpha", "premultiplied")
   love.graphics.draw(canvas)
+  love.graphics.setBlendMode("alpha", "alphamultiply")
   love.graphics.setLineStyle("smooth")
 
   local mx, my = love.mouse.getPosition()
