@@ -483,6 +483,276 @@ return function()
 	end
 
 
+--#####--#------#--####---#####--####--#####--
+--#------#---------#---#--#------#--#--#------
+--#####--#------#--#---#--#####--####--#####--
+------#--#------#--#---#--#------#-#-------#--
+--#####--#####--#--####---#####--#--#--#####--
+-------------------SLIDERS--------------------
+
+gui.slider = {min = 0, max = 100, height = 3, slider = {width = 8, height = 3}, color = {line = grey.c4, slider = grey.c6}}
+setmetatable(gui.slider, gui.mt)
+
+
+gui.slider.draw = function(self)
+
+	love.graphics.setLineStyle("rough")
+
+	if not self.vert then
+	
+		love.graphics.setLineWidth(self.height)
+		love.graphics.setColor(self.color.line)
+		love.graphics.line(self.x+self.height/2, self.y+self.height/2, self.x+self.width, self.y+self.height/2)
+		love.graphics.setColor(self.color.slider)
+		love.graphics.rectangle('fill', self.x+((self.value-self.min)*self.width/(self.max-self.min))-self.slider.width/2, self.y, self.slider.width, self.slider.height)
+		
+	else
+	
+		love.graphics.setLineWidth(self.width)
+		love.graphics.setColor(self.color.line)
+		love.graphics.line(self.x+self.width/2, self.y+self.width/2, self.x+self.width/2, self.y+self.height)
+		love.graphics.setColor(self.color.slider)
+		love.graphics.rectangle('fill', self.x, self.y+((self.value-self.min)*self.height/(self.max-self.min))-self.slider.height/2, self.slider.width, self.slider.height)
+		
+	end
+	
+end
+
+
+gui.slider.clicked = function(self, b, x, y)
+
+	if x >= self.x and x <= self.x+self.width and y >= self.y and y <= self.y+self.height and b == 'l' then
+		self.move = true
+	end
+end
+
+gui.slider.hover = function(self, x, y)
+	return AABB(self.x, self.y, self.width, self.height, x, y, 1, 1)
+end
+
+gui.slider.update = function(self, b, x, y)
+
+	if b ~= 'l' then
+	
+		self.move = false
+		
+	end
+	
+	if not self.vert then
+	
+		if self.move and x - self.x >= 0 then
+		
+			self.value = clamp(0, (x - self.x)*(self.max-self.min)/self.width, self.max-self.min)+self.min
+			
+			self.value = round(self.value)
+			
+		elseif self.move and x-self.x < 0 then
+		
+			self.value = math.max(self.min, (x-self.x)*self.max/self.width)
+			
+		end
+		
+	else
+	
+		if self.move and y - self.y >= 0 then
+		
+			self.value = clamp(0, (y - self.y)*(self.max-self.min)/self.height, self.max-self.min)+self.min
+			
+			self.value = round(self.value)
+			
+		elseif self.move and y - self.y < 0 then
+		
+			self.value = math.max(self.min, (y - self.y)*self.max/self.width)
+			
+		end
+		
+	end
+	
+end
+
+--Set methods
+
+gui.slider.setX = function(self, x)
+
+	self.x = x
+	
+end
+
+
+gui.slider.setY = function(self, y)
+
+	self.y = y
+	
+end
+
+
+gui.slider.setPosition = function(self, x, y)
+
+	self.x, self.y = x, y
+	
+end
+
+
+gui.slider.setWidth = function(self, w)
+
+	self.width = w
+	
+end
+
+
+gui.slider.setHeight = function(self, h)
+
+	self.height = h
+	
+end
+
+
+gui.slider.setDimension = function(self, w, h)
+
+	self.width, self.height = w, h
+	
+end
+
+
+gui.slider.setValue = function(self, v)
+
+	self.value = v
+	
+end
+
+
+gui.slider.setMin = function(self, m)
+
+	self.min = m
+	
+end
+
+
+gui.slider.setMax = function(self, m)
+
+	self.max = m
+	
+end
+
+
+gui.slider.setColor = function(self, c)
+
+	self.color = c
+	
+end
+
+
+gui.slider.setSliderWidth = function(self, sw)
+
+	self.slider.width = sw
+	
+end
+
+
+gui.slider.setSliderHeight = function(self, sh)
+
+	self.slider.height = sh
+	
+end
+
+
+gui.slider.setSliderDimenion = function(self, sw, sh)
+
+	self.slider.width, self.slider.height = sw, sh
+	
+end
+
+--Get methods
+
+gui.slider.getX = function(self)
+
+	return self.x
+	
+end
+
+
+gui.slider.getY = function(self)
+
+	return self.y
+	
+end
+
+
+gui.slider.getPosition = function(self)
+
+	return self.x, self.y
+	
+end
+
+
+gui.slider.getWidth = function(self)
+
+	return self.width
+	
+end
+
+
+gui.slider.getHeight = function(self)
+
+	return self.height
+	
+end
+
+
+gui.slider.getDimension = function(self)
+
+	return self.width, self.height
+	
+end
+
+
+gui.slider.getValue = function(self)
+
+	return self.value
+	
+end
+
+
+gui.slider.getMin = function(self)
+
+	return self.min
+	
+end
+
+
+gui.slider.getMax = function(self)
+
+	return self.max
+	
+end
+
+
+gui.slider.getColor = function(self)
+
+	return self.color
+	
+end
+
+
+gui.slider.getSliderWidth = function(self)
+
+	return self.slider.width
+	
+end
+
+
+gui.slider.getSliderHeight = function(self)
+
+	return self.slider.height
+	
+end
+
+
+gui.slider.getSliderDimenion = function(self)
+
+	return self.slider.width, self.slider.height
+	
+end
 	--#####--#####--#---#--#####--#------#--#---#--#####--#####--
 	----#----#-------#-#-----#----#---------##--#--#------#------
 	----#----#####----#------#----#------#--#-#-#--#####--#####--
@@ -891,6 +1161,8 @@ return function()
 	end
 
 	gui.list.draw = function(self) 
+		love.graphics.setLineStyle("smooth")
+		love.graphics.setLineWidth(1)
 		love.graphics.setColor(self.color.background)
 		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
 		love.graphics.setScissor(self.x, self.y, self.width, self.height)

@@ -21,3 +21,7 @@
 * rework cli arguments; png file is mandatory, everything else is ``--option value``
 * make tool check/convert png file automatically
 * have it prompt for missing info
+
+## gui
+* Rework internals to allow z indexing
+* * Possibly remove the whole \_\_drawables fuckery and add properties to the items instead of items to tables?

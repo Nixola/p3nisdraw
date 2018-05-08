@@ -352,7 +352,7 @@ end
 
 game.mousepressed = function(self, x, y, butt)
   if interface.shown then -- swallow the click
-    interface.gui:mousepressed(x, y, butt)
+    interface:mousepressed(x, y, butt)
     return
   end
   if butt == 1 then
