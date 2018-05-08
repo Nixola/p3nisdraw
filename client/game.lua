@@ -91,14 +91,8 @@ end
 
 game.drawLine = function(self, line, dbg)
 
-  local c = line.color
-  local r, g, b, a = unpack(c)
-  r = r * 255
-  g = g * 255
-  b = b * 255
-  a = (a or 1) * 255
   local t = line
-  love.graphics.setColor(r,g,b,a)
+  love.graphics.setColor(line.color)
   --love.graphics.setLineWidth(line.size)
   updateLineBatch(line)
   love.graphics.draw(line.batch)
@@ -127,12 +121,7 @@ end
 
 game.drawText = function(self, text)
 
-  local r, g, b, a = unpack(text.color)
-  r = r * 255
-  g = g * 255
-  b = b * 255
-  a = (a or 1) * 255
-  love.graphics.setColor(r, g, b, a)
+  love.graphics.setColor(text.color)
   love.graphics.setFont(gui.font[text.size])
   love.graphics.print(text.text, text[1], text[2])
 end
@@ -195,7 +184,7 @@ end
 
 
 game.draw = function(self, snap)
-  love.graphics.setColor(255, 255, 255)
+  love.graphics.setColor(1, 1, 1)
   love.graphics.setBlendMode("alpha", "premultiplied")
   love.graphics.draw(canvas)
   love.graphics.setBlendMode("alpha", "alphamultiply")
@@ -221,21 +210,21 @@ game.draw = function(self, snap)
     if len >= 3 then
       local c = v.color
       local r, g, b, a = unpack(c)
-      love.graphics.setColor(r * 255, g * 255, b * 255, a * 64)
+      love.graphics.setColor(r, g, b, a)
       love.graphics.setLineWidth(size)
       love.graphics.line(v)
     end
   end
 
   if colorPicker then
-    love.graphics.setColor(0, 0, 0, 128)
+    love.graphics.setColor(0, 0, 0, 1/2)
     love.graphics.rectangle("fill", -1, -1, 1281, 721)
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(1, 1, 1)
     colorPicker:draw()
-    love.graphics.setColor(colorPicker.sc[1] * 255, colorPicker.sc[2] * 255, colorPicker.sc[3] * 255, a * 192)
+    love.graphics.setColor(colorPicker.sc[1], colorPicker.sc[2], colorPicker.sc[3], a)
     love.graphics.circle("fill", mx, my, size / 2 + 1, size)
   else
-    love.graphics.setColor(r * 255, g * 255, b * 255, a * 192)
+    love.graphics.setColor(r, g, b, a)
     love.graphics.setLineWidth(1)
     love.graphics.circle("line", mx, my, size / 2 + 1, size)
   end
@@ -267,7 +256,7 @@ game.keypressed = function(self, key, scan)
   end
 
   if scan == "return" and not textbox then
-  	textbox = gui:newTextLine(0, 0 - 6, nil, '', 1280, 720, 0, {center = {0,0,0,0}, border={0,0,0,0}, text={r*255,g*255,b*255,a*255}})
+  	textbox = gui:newTextLine(0, 0 - 6, nil, '', 1280, 720, 0, {center = {0,0,0,0}, border={0,0,0,0}, text={r,g,b,a}})
     local mx, my = love.mouse.getPosition()
     textID = nextID
     nextID = nextID + 1
@@ -276,7 +265,7 @@ game.keypressed = function(self, key, scan)
 
   	textbox.update = function(self, dt)
       self.size = size
-      self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r * 255, g * 255, b * 255, a * 255/4
+      self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r, g, b, a/4
   		self.x, self.y = love.mouse.getPosition()
       self.x = math.floor(self.x + 8)
       self.y = math.floor(self.y - gui.font[self.size]:getHeight()/2)
@@ -320,7 +309,7 @@ game.keypressed = function(self, key, scan)
         end
       else
         self.size = size
-        self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r * 255, g * 255, b * 255, a * 255
+        self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r, g, b, a
         self.x, self.y = love.mouse.getPosition()
         self.x = math.floor(self.x + 8)
         self.y = math.floor(self.y - gui.font[self.size]:getHeight()/2)
@@ -370,7 +359,7 @@ game.mousepressed = function(self, x, y, butt)
   	if not tempLine then-- create a line!
 	    lineID = nextID
 	    nextID = nextID + 1
-	    tempLine = {size = size, color = {r, g, b, a}, x, y}
+	    tempLine = {size = size, color = {r, g, b, a/10}, x, y}
 	    local t = {type = "create", lineID = lineID, x = x, y = y, size = size, color = {r, g, b, a}, smoothness = smoothness, brush = brush}
 	    self.server:send(binser.s(t))
 	    tempLines[lineID] = tempLine
@@ -384,9 +373,9 @@ game.mousepressed = function(self, x, y, butt)
       colorPicker = CP
     else
       r, g, b = unpack(colorPicker.nc or colorPicker.sc)
-      r = r / 255
-      g = g / 255
-      b = b / 255
+      r = r
+      g = g
+      b = b
       colorPicker = nil
     end
   end

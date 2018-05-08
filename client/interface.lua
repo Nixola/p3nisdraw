@@ -38,9 +38,9 @@ end
 
 interface.draw = function(self)
 
-	love.graphics.setColor(32, 32, 32, 192)
+	love.graphics.setColor(1/8, 1/8, 1/8, 6/8)
 	love.graphics.rectangle("fill", -0.5, -0.5, 161, 721)
-	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.setFont(self.gui.font[12])
 
 	love.graphics.print(string.format("%dms, %d KB/%d KB", states.game.server:round_trip_time(), math.floor(states.game.host:total_sent_data()/1024), math.floor(states.game.host:total_received_data()/1024)), 0, 0)

@@ -16,7 +16,7 @@ events.start = function(event)
   local imgData = love.image.newImageData(fileData)
   local img = love.graphics.newImage(imgData)
 
-  love.graphics.setColor(255, 255, 255)
+  love.graphics.setColor(1, 1, 1)
   love.graphics.setCanvas(canvas)
     love.graphics.draw(img)
   love.graphics.setCanvas()
@@ -24,9 +24,9 @@ events.start = function(event)
   -- Brushes
   brushes = event.brushes
   for id, b in ipairs(brushes) do
-  	local fdata = love.filesystem.newFileData(b.png64, b.name, "base64")
+  	local fdata = love.filesystem.newFileData(love.data.decode("string", "base64", b.png64), b.name)
     local imgD = love.image.newImageData(fdata)
-    imgD:mapPixel(function(r,g,b,a) return 255,255,255,b end)
+    imgD:mapPixel(function(r,g,b,a) return 1,1,1,b end)
     b.img = love.graphics.newImage(imgD)
   	--b.img = love.graphics.newImage(fdata)
   	brushes[id] = brush:new(b)

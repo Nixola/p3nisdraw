@@ -63,22 +63,22 @@ return function()
 		self.__updateables = {'sliders', 'buttons', 'sliders2d', 'lists'}
 		self.__typeables = {'textLines'}
 		
-		love.keyboard.setKeyRepeat(0.25, 0.025)
+		love.keyboard.setKeyRepeat(true)
 		
 	end
 
 	gui:load()
 
-	local white = {255,255,255}
+	local white = {1,1,1}
 	local black = {0,0,0}
 	local grey = {}
-	grey.c7 = {224,224,224}
-	grey.c6 = {192,192,192}
-	grey.c5 = {160,160,160}
-	grey.c4 = {128,128,128}
-	grey.c3 = {96,96,96}
-	grey.c2 = {64,64,64}
-	grey.c1 = {32,32,32}
+	grey.c7 = {7/8, 7/8, 7/8}
+	grey.c6 = {6/8, 6/8, 6/8}
+	grey.c5 = {5/8, 5/8, 5/8}
+	grey.c4 = {4/8, 4/8, 4/8}
+	grey.c3 = {3/8, 3/8, 3/8}
+	grey.c2 = {2/8, 2/8, 2/8}
+	grey.c1 = {1/8, 1/8, 1/8}
 
 	gui.font = setmetatable({}, {__index = function(t, i) if tonumber(i) then t[i] = love.graphics.newFont(i) return t[i] end end})
 

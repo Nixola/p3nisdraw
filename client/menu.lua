@@ -54,7 +54,7 @@ end
 
 local timer = 0
 
-err  = gui:newLabel(32, 290, "", {255, 0, 0})
+err  = gui:newLabel(32, 290, "", {1, 0, 0})
 nick = gui:newTextLine(32, 310, connect, "Nickname", 178)
 addr = gui:newTextLine(32, 340, connect, config.address and (config.address:match("%:%d+$") and config.address or (config.address .. ":42069")) or "nixo.la:42069", 178)
 
@@ -96,10 +96,10 @@ end
 
 menu.draw = function(self)
 	if connecting.resolving then
-		love.graphics.setColor(192, 192, 0)
+		love.graphics.setColor(6/8, 6/8, 0)
 		love.graphics.printf("Resolving...", 32, 400, 178, "center")
 	elseif connecting.ip then
-		love.graphics.setColor(0, 192, 0)
+		love.graphics.setColor(0, 6/8, 0)
 		love.graphics.printf("Connecting...", 32, 400, 178, "center")
 	end
 	if connecting.resolving or connecting.ip then
@@ -110,13 +110,13 @@ menu.draw = function(self)
 		end
 	end
 	gui:draw()
-	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.setFont(gui.font[32])
 	love.graphics.printf("Penisdraw III: Bigger than Unek's", 240, 16, 600, "left")
 	local font = gui.font[12]
 	love.graphics.setFont(font)
 	love.graphics.printf(self.helpString, 240, 64, 600, "left")
-	love.graphics.setColor(255, 255, 255, 192)
+	love.graphics.setColor(1, 1, 1, 6/8)
 	local _, wrap = font:getWrap(self.helpString, 600)
 	local height = font:getHeight() * #wrap
 	love.graphics.line(230, 16, 230, 64 + height + 8)
