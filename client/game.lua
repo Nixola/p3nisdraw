@@ -240,7 +240,7 @@ end
 
 
 game.keypressed = function(self, key, scan)
-  if scan == "z" and love.keyboard.isDown("ctrl", "lctrl", "rctrl") then
+  if scan == "z" and love.keyboard.isDown("lctrl", "rctrl") then
     self.server:send(binser.s{type = "delete", lineID = nextID-1})
     nextID = nextID - 1
   elseif scan == "f12" then
