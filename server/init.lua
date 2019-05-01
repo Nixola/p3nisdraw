@@ -29,7 +29,7 @@ config.port    = config.port    or 42069
 
 local time, otime = os.time(), os.time()
 
-local host = enet.host_create(config.address .. ":" .. config.port)
+local host = assert(enet.host_create(config.address .. ":" .. config.port))
 
 local relay = function(host, data, peerID)
   table.insert(data, 2, peerID)
