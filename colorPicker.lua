@@ -113,7 +113,7 @@ function cp:HSVtoRGB(h,s,v)
 	elseif i then 
 		r=v;g=z;b=x
 	end
-	return math.floor(r),math.floor(g),math.floor(b)
+	return math.floor(r)/255,math.floor(g)/255,math.floor(b)/255
 end
 
 function cp:create(x,y,size)
@@ -161,7 +161,7 @@ function cp:tri()
         {
             x2, y2,
             0, 0, 
-            255,255,255
+            1,1,1
         },
         {
             x3, y3,
@@ -173,7 +173,7 @@ function cp:tri()
 	self.canvas2:renderTo(
 		function()
 			love.graphics.clear()
-			love.graphics.setColor(255,255, 255, 255)
+			love.graphics.setColor(1,1,1, 1)
 			love.graphics.draw(mesh, self.size,self.size)
 
 			love.graphics.setLineWidth(self.size/25)
@@ -235,7 +235,7 @@ function cp:update()
 				self.nc = {self:HSVtoRGB(self.ringDeg, 1, 255)}
 			elseif a >= 1/6 and a < 1/2 then
 				ringRad = ringRad + 2/3 * math.pi
-				self.nc = {255, 255, 255}
+				self.nc = {1,1,1}
 				--white I guess
 			elseif a >= 1/2 and a < 5/6 then
 				ringRad = ringRad + 4/3 * math.pi
@@ -315,7 +315,7 @@ function cp:getOpColor()
 end
 
 function cp:draw()
-	love.graphics.setColor(255, 255, 255,192)
+	love.graphics.setColor(1, 1, 1, 5/8)
 	love.graphics.draw(self.canvas2,self.x,self.y)
 	love.graphics.draw(self.canvas,self.x,self.y)
 	love.graphics.setLineWidth(1)
