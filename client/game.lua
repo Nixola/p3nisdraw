@@ -23,7 +23,7 @@ local dbg, interface
 local size, r, g, b, a = 3, 1, 1, 1, 1
 
 local randomRGB = love.math.newRandomGenerator()
-local cacheRGB = setmetatable({}, {__index = function(self, k) randomRGB:setSeed(tonumber(k)); self[k] = {randomRGB:random(256)-1, randomRGB:random(256)-1, randomRGB:random(256)-1}; return self[k]; end})
+local cacheRGB = setmetatable({}, {__index = function(self, k) randomRGB:setSeed(tonumber(k)); self[k] = {randomRGB:random(), randomRGB:random(), randomRGB:random()}; return self[k]; end})
 
 game.connect = function(self, nick, address, port)
 
@@ -42,10 +42,10 @@ game.drawLine = function(self, line, dbg)
 
   local c = line.color
   local r, g, b, a = unpack(c)
-  r = r * 255
-  g = g * 255
-  b = b * 255
-  a = (a or 1) * 255
+  r = r
+  g = g
+  b = b
+  a = (a or 1)
   local t = line
   love.graphics.setColor(r,g,b,a)
   love.graphics.setLineWidth(line.size)
@@ -81,10 +81,10 @@ end
 game.drawText = function(self, text)
 
   local r, g, b, a = unpack(text.color)
-  r = r * 255
-  g = g * 255
-  b = b * 255
-  a = (a or 1) * 255
+  r = r
+  g = g
+  b = b
+  a = (a or 1)
   love.graphics.setColor(r, g, b, a)
   love.graphics.setFont(gui.font[text.size])
   love.graphics.print(text.text, text[1], text[2])
@@ -93,11 +93,11 @@ end
 
 game.drawInterface = function(self)
 
-  love.graphics.setColor(32, 32, 32, 192)
+  love.graphics.setColor(1/8, 1/8, 1/8, 6/8)
 
   love.graphics.rectangle("fill", -0.5, -0.5, 161, 721)
 
-  love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.setColor(1, 1, 1, 1)
 
   love.graphics.setFont(gui.font[12])
 
@@ -155,7 +155,7 @@ end
 
 
 game.draw = function(self, snap)
-  love.graphics.setColor(255, 255, 255)
+  love.graphics.setColor(1, 1, 1)
   love.graphics.draw(canvas)
   love.graphics.setLineStyle("smooth")
 
@@ -179,21 +179,21 @@ game.draw = function(self, snap)
     if len >= 3 then
       local c = v.color
       local r, g, b, a = unpack(c)
-      love.graphics.setColor(r * 255, g * 255, b * 255, a * 64)
+      love.graphics.setColor(r, g, b, a / 4)
       love.graphics.setLineWidth(size)
       love.graphics.line(v)
     end
   end
 
   if colorPicker then
-    love.graphics.setColor(0, 0, 0, 128)
+    love.graphics.setColor(0, 0, 0, 1/2)
     love.graphics.rectangle("fill", -1, -1, 1281, 721)
-    love.graphics.setColor(255, 255, 255)
+    love.graphics.setColor(1, 1, 1)
     colorPicker:draw()
-    love.graphics.setColor(colorPicker.sc[1] * 255, colorPicker.sc[2] * 255, colorPicker.sc[3] * 255, a * 192)
+    love.graphics.setColor(colorPicker.sc[1], colorPicker.sc[2], colorPicker.sc[3], a / 8 * 6)
     love.graphics.circle("fill", mx, my, size / 2 + 1, size)
   else
-    love.graphics.setColor(r * 255, g * 255, b * 255, a * 192)
+    love.graphics.setColor(r, g, b, a / 8 * 5)
     love.graphics.setLineWidth(1)
     love.graphics.circle("line", mx, my, size / 2 + 1, size)
   end
@@ -222,7 +222,7 @@ game.keypressed = function(self, key, scan)
   end
 
   if scan == "return" and not textbox then
-  	textbox = gui:newTextLine(0, 0 - 6, nil, '', 1280, 720, 0, {center = {0,0,0,0}, border={0,0,0,0}, text={r*255,g*255,b*255,a*255}})
+  	textbox = gui:newTextLine(0, 0 - 6, nil, '', 1280, 720, 0, {center = {0,0,0,0}, border={0,0,0,0}, text={r, g, b, a}})
     local mx, my = love.mouse.getPosition()
     textID = nextID
     nextID = nextID + 1
@@ -231,7 +231,7 @@ game.keypressed = function(self, key, scan)
 
   	textbox.update = function(self, dt)
       self.size = size
-      self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r * 255, g * 255, b * 255, a * 255/4
+      self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r, g, b, a/4
   		self.x, self.y = love.mouse.getPosition()
       self.x = math.floor(self.x + 8)
       self.y = math.floor(self.y - self.font[self.size]:getHeight()/2)
@@ -274,7 +274,7 @@ game.keypressed = function(self, key, scan)
         end
       else
         self.size = size
-        self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r * 255, g * 255, b * 255, a * 255
+        self.color.text[1], self.color.text[2], self.color.text[3], self.color.text[4] = r, g, b, a
         self.x, self.y = love.mouse.getPosition()
         self.x = math.floor(self.x + 8)
         self.y = math.floor(self.y - self.font[self.size]:getHeight()/2)
@@ -362,9 +362,9 @@ game.mousereleased = function(self, x, y, butt)
     tempLine = nil
   elseif butt == 2 then
     r, g, b = unpack(colorPicker.nc or colorPicker.sc)
-    r = r / 255
-    g = g / 255
-    b = b / 255
+    r = r
+    g = g
+    b = b
     colorPicker = nil
   end
 
